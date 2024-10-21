@@ -1,88 +1,200 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-  <head>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/home.css">
+  <title>Catálogo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      background-color: #f0f0f0; 
+    }
 
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/css/home.css">
-    <title>Produtos Edit</title>
+    header {
+      background-color: #333;
+      color: #fff;
+      padding: 1rem;
+    }
 
-  </head>
+    nav ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+    }
 
-  <body>
-    
-    <header>
-      <nav>
-        <ul>
-          <li><a href="/">Home</a></li>
-          <li><a href="/produtos">Produtos</a></li>
-          <li><a href="/zones">Zones</a></li>
-          <% if (username.role === 'admin') { %> 
-            <!-- Verifica se o usuário é admin, se for aparece opção produtos ADM e zones ADM -->
-            <li><a href="/produtosadm">Produtos ADM</a></li>
-            <li><a href="/zonesadm">Zones ADM</a></li>
-          <% } %>
-          <li><a href="/sobre">Sobre</a></li>
-          <li><a href="/logout">Sair</a></li>
-        </ul>
-      </nav>
-    </header>
-    
-    <div class="center">
-      <div id="video-container">
-        <% produtos.forEach(function(produto) { %>
-          <div>
-            <h3><%= produto.id %> - <%= produto.name %></h3>
-            <h3>Descrição do produto abaixo:</h3>
-            <p>( <%= produto.description %> )</p>
-            
-            <!-- Exibe a zona correspondente ao produto ou uma mensagem caso não tenha zona -->
-            <h3>Zona: <%= produto.zona && produto.zona.id ? produto.zona.id : 'Zona não definida' %></h3>
-    
-            <form action="/editar-produto/<%= produto.id %>" method="POST">
-              <input type="hidden" name="produtoId" value="<%= produto.id %>">
-              <button type="submit">Editar</button>
-            </form>
-            
-            <form action="/delete-produto" method="POST">
-              <input type="hidden" name="produtoId" value="<%= produto.id %>">
-              <button type="submit">Excluir</button>
-              <br><br>
-            </form>
-          </div>
-        <% }) %>
-    
-        <form action="/novo-produto" method="POST">
-          <br><br>
-          <button type="submit">Adicionar novo</button>
-        </form>
-      </div>
-    </div>
+    nav ul li {
+      margin: 0 1rem;
+    }
 
-    <footer>
-      <p>A vida não é um morango</p>
-      <p>&copy; 2024 EIBY. Todos os direitos reservados.</p>
-    </footer>
+    nav ul li a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: bold;
+    }
 
-    <script>
-      function adjustNavMargin() {
-        const navUl = document.querySelector('nav ul');
-        const hasScrollbar = window.innerWidth > document.documentElement.clientWidth;
-    
-        // Ajusta a margem com base na presença da barra de rolagem
-        if (hasScrollbar) {
-            navUl.style.marginLeft = '15px';
-        } else {
-            navUl.style.marginLeft = '0';
-        }
+    nav ul li a:hover {
+      text-decoration: underline;
+    }
+
+    .center {
+      display: flex;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    #video-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      max-width: 1200px;
+    }
+
+    #video-container div {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      width: calc(33.333% - 2rem);
+      box-sizing: border-box;
+      background-color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #video-container h3 {
+      margin: 0;
+      font-size: 1.2rem;
+      text-align: center;
+    }
+
+    #video-container p {
+      font-size: 1rem;
+      margin: 0.5rem 0;
+      color: #000; /* Cor da fonte preta */
+      text-align: center;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 1rem;
+    }
+
+    button {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      margin: 0.5rem 0;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    /* Botão fixo no canto superior direito */
+    .fixed-button {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background-color: #28a745;
+      color: #fff;
+      padding: 0.7rem 1.2rem;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      z-index: 1000; /* Garante que o botão fique acima de outros elementos */
+    }
+
+    .fixed-button:hover {
+      background-color: #218838;
+    }
+
+    footer {
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      padding: 1rem;
+      position: fixed;
+      width: 100%;
+      bottom: 0;
+    }
+
+    @media (max-width: 768px) {
+      #video-container div {
+        width: calc(50% - 2rem);
       }
-    
-      document.addEventListener('DOMContentLoaded', adjustNavMargin);
-      
-      window.addEventListener('resize', adjustNavMargin);
-    </script>
+    }
 
-  </body>
+    @media (max-width: 480px) {
+      #video-container div {
+        width: calc(100% - 2rem);
+      }
+
+      .fixed-button {
+        top: 1rem;
+        right: 0.5rem;
+        padding: 0.5rem 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/">Catálogo</a></li>
+        <li><a href="/produtos">Produtos</a></li>
+        <li><a href="/sobre">Sobre</a></li>
+        <li><a href="/logout">Sair</a></li>
+      </ul>
+    </nav>
+  </header>
+  
+  <!-- Botão fixo de adicionar novo produto -->
+  <form action="/novo-produto" method="POST">
+    <button type="submit" class="fixed-button">Adicionar novo</button>
+  </form>
+
+  <div class="center">
+    <div id="video-container">
+      <% produtos.forEach(function(produto) { %>
+        <div>
+          <h3><%= produto.id %> - <%= produto.name %></h3>
+          <h3>Descrição do produto abaixo:</h3>
+          <p>( <%= produto.description %> )</p>
+          <form action="/editar-produto/<%= produto.id %>" method="POST">
+            <input type="hidden" name="produtoId" value="<%= produto.id %>">
+            <button type="submit">Editar</button>
+          </form>
+          <form action="/deletar-produto" method="POST">
+            <input type="hidden" name="produtoId" value="<%= produto.id %>">
+            <button type="submit">Excluir</button>
+          </form>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+
+  <footer>
+    <p>A vida não é um morango</p>
+    <p>&copy; 2024 EIBY. Todos os direitos reservados.</p>
+  </footer>
+</body>
 
 </html>
