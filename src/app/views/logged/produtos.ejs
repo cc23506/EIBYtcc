@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/home.css">
+    <title>Produtos Edit</title>
+
+  </head>
+
+  <body>
+    
+    <header>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/produtos">Produtos</a></li>
+          <li><a href="/zones">Zones</a></li>
+          <% if (username.role === 'admin') { %> 
+            <!-- Verifica se o usuário é admin, se for aparece opção produtos ADM e zones ADM -->
+            <li><a href="/produtosadm">Produtos ADM</a></li>
+            <li><a href="/zonesadm">Zones ADM</a></li>
+          <% } %>
+          <li><a href="/sobre">Sobre</a></li>
+          <li><a href="/logout">Sair</a></li>
+        </ul>
+      </nav>
+    </header>
+    
+    <div class="center">
+      <div id="video-container">
+        <% produtos.forEach(function(produto) { %>
+          <div>
+            <h3><%= produto.id %> - <%= produto.name %></h3>
+            <h3>Descrição do produto abaixo:</h3>
+            <p>( <%= produto.description %> )</p>
+            
+            <!-- Exibe a zona correspondente ao produto ou uma mensagem caso não tenha zona -->
+            <h3>Zona: <%= produto.zona && produto.zona.id ? produto.zona.id : 'Zona não definida' %></h3>
+    
+            <form action="/editar-produto/<%= produto.id %>" method="POST">
+              <input type="hidden" name="produtoId" value="<%= produto.id %>">
+              <button type="submit">Editar</button>
+            </form>
+            
+            <form action="/delete-produto" method="POST">
+              <input type="hidden" name="produtoId" value="<%= produto.id %>">
+              <button type="submit">Excluir</button>
+              <br><br>
+            </form>
+          </div>
+        <% }) %>
+    
+        <form action="/novo-produto" method="POST">
+          <br><br>
+          <button type="submit">Adicionar novo</button>
+        </form>
+      </div>
+    </div>
+
+    <footer>
+      <p>A vida não é um morango</p>
+      <p>&copy; 2024 EIBY. Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+      function adjustNavMargin() {
+        const navUl = document.querySelector('nav ul');
+        const hasScrollbar = window.innerWidth > document.documentElement.clientWidth;
+    
+        // Ajusta a margem com base na presença da barra de rolagem
+        if (hasScrollbar) {
+            navUl.style.marginLeft = '15px';
+        } else {
+            navUl.style.marginLeft = '0';
+        }
+      }
+    
+      document.addEventListener('DOMContentLoaded', adjustNavMargin);
+      
+      window.addEventListener('resize', adjustNavMargin);
+    </script>
+
+  </body>
+
+</html>

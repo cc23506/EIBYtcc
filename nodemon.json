@@ -1,0 +1,10 @@
+{
+  "watch": ["src"],
+  "ext": "js,ejs",
+  "ignore": ["node_modules"],
+  "exec": "node src/config/server.js",
+  "events": {
+    "restart": "clear"
+  }
+
+}

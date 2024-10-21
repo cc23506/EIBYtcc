@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizar Produto</title>
+    <link rel="stylesheet" href="/css/produtos.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Produto Pedido</h1>
+
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Zona</th>
+                <th>Descrição</th>
+            </tr>
+            <tr>
+                <td><%= produto ? produto.id : 'ID não disponível' %></td>
+                <td><%= produto ? produto.name : 'Nome não disponível' %></td>
+                <td><%= zone ? zone.id : 'Zona não disponível' %></td>
+                <td><%= produto ? produto.description : 'Descrição não disponível' %></td>
+            </tr>
+        </table>
+
+        <h2>Status do Robô:</h2>
+        <p id="status">O robô está iniciando a busca...</p>
+
+        <button type="button" onclick="window.location.href='/';">Início</button>
+    </div>
+
+    <script>
+        // Função para verificar o status do robô
+        const checkStatus = () => {
+            fetch('/status-robot')
+                .then(response => response.json())
+                .then(data => {
+                    const statusElement = document.getElementById('status');
+                    if (data.success) {
+                        statusElement.textContent = `Status: ${data.message}`;
+                    } else {
+                        statusElement.textContent = 'Erro: Não foi possível obter o status do robô.';
+                    }
+                })
+                .catch(error => {
+                    const statusElement = document.getElementById('status');
+                    statusElement.textContent = 'Erro ao comunicar com o servidor.';
+                });
+        };
+
+        // Verifica o status a cada 5 segundos
+        setInterval(checkStatus, 5000);
+    </script>
+</body>
+</html>

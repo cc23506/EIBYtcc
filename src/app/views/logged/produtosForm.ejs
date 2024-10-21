@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= produto ? 'Editar Produto' : 'Adicionar Novo Produto' %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <h1><%= produto ? 'Editar Produto' : 'Adicionar Novo Produto' %></h1>
+    
+    <form action="/save-produto" method="POST">
+        <% if (produto) { %>
+            <input type="hidden" name="produtoId" value="<%= produto.id %>"> <!-- produtoId hidden -->
+        <% } %>
+        
+        <label for="name">Nome do Produto:</label>
+        <input type="text" id="name" name="name" value="<%= produto ? produto.name : '' %>" required>
+        <br><br>
+        
+        <label for="description">Descrição:</label>
+        <textarea id="description" name="description" rows="4" cols="50"><%= produto ? produto.description : '' %></textarea>
+        <br><br>
+        
+        <label for="zone">Selecione a Zona:</label>
+        <select id="zone" name="zone" required>
+            <% zonas.forEach(function(zona, index) { %>
+                <option value="<%= zona.id %>"
+                    <%= produto && produto.zone_id === zona.id ? 'selected' : '' %>
+                    <%= !produto && index === 0 ? 'selected' : '' %>> 
+                    <%= zona.name %>
+                </option>
+            <% }) %>
+        </select>
+
+        <br><br>
+
+        <button type="submit"><%= produto ? 'Salvar Alterações' : 'Adicionar Produto' %></button>
+        <button type="button" onclick="window.location.href='/produtos';">Cancelar</button>
+    </form>
+    
+</body>
+</html>

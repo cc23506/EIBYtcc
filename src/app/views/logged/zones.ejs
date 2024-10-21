@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/home.css">
+    <title>Catálogo</title>
+
+    </head>
+
+    <body>
+
+        <header>
+            <nav>
+                <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/produtos">Produtos</a></li>
+                <li><a href="/zones">Zones</a></li>
+                <% if (username.role === 'admin') { %> <!-- Verifica se o usuário é admin, se for aparece opção produtos, se não for, não mostra a opção de produtos -->
+                    <li><a href="/produtosadm">Produtos ADM</a></li>
+                    <li><a href="/zonesadm">Zones ADM</a></li>
+                <% } %>
+                <li><a href="/sobre">Sobre</a></li>
+                <li><a href="/logout">Sair</a></li>
+                </ul>
+            </nav>
+        </header>
+    
+        <div class="center">
+            <div id="video-container">
+            <% zones.forEach(function(zone) { %>
+                <div>
+                <h3><%= zone.id %> - <%= zone.name %></h3>
+                <h3>Coordenadas do zone abaixo:</h3>
+                <p>X1: <%= zone.x1 %>, X2: <%= zone.x2 %></p>
+                <p>Y1: <%= zone.y1 %>, Y2: <%= zone.y2 %></p>
+                    <form action="/editar-zone/<%= zone.id %>" method="POST">
+                    <input type="hidden" name="zoneId" value="<%= zone.id %>">
+                    <button type="submit">Editar</button>
+                    </form>
+                    
+                <form action="/delete-zone" method="POST">
+                    <input type="hidden" name="zoneId" value="<%= zone.id %>">
+                    <button type="submit">Excluir</button>
+                    <br>
+                    <br>
+                </form>
+                </div>
+            <% }) %>
+
+            <form action="/new-zone" method="POST">
+                <br><br>
+                <button type="submit">Adicionar nova zona</button>
+            </form>
+
+            <form action="/new-map" method="POST">
+                <br><br>
+                <button type="submit">Adicionar novo mapa</button>
+            </form>
+            </div>
+        </div>
+
+        <footer>
+            <p>A vida não é um morango</p>
+            <p>&copy; 2024 EIBY. Todos os direitos reservados.</p>
+        </footer>
+
+        <script>
+            function adjustNavMargin() {
+            const navUl = document.querySelector('nav ul');
+            const hasScrollbar = window.innerWidth > document.documentElement.clientWidth;
+        
+            // Ajusta a margem com base na presença da barra de rolagem
+            if (hasScrollbar) {
+                navUl.style.marginLeft = '15px';
+            } else {
+                navUl.style.marginLeft = '0';
+            }
+            }
+        
+            document.addEventListener('DOMContentLoaded', adjustNavMargin);
+            
+            window.addEventListener('resize', adjustNavMargin);
+        </script>
+
+    </body>
+</html>

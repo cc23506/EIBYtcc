@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/produtosView.css">
+    <title>Produtos</title>
+  </head>
+
+  <body>
+    <header>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/catalogo">Catálogo</a></li>
+          <li><a href="/produtos">Produtos</a></li>
+          <li><a href="/zones">Zones</a></li>
+          <% if (username.role === 'admin') { %>
+            <li><a href="/produtosadm">Produtos ADM</a></li>
+            <li><a href="/zonesadm">Zones ADM</a></li>
+          <% } %>
+          <li><a href="/sobre">Sobre</a></li>
+          <li><a href="/logout">Sair</a></li>
+        </ul>
+      </nav>
+    </header>
+    
+    <main class="center">
+      <div id="produto-container">
+        <% produtos.forEach(function(produto) { %>
+          <div>
+            <h3><%= produto.id %> - <%= produto.name %></h3>
+
+            <!-- Exibe a zona associada ao produto -->
+            <% if (produto.zona) { %>
+              <h3>Produto está na zona: <%= produto.zona.id %></h3>
+            <% } else { %>
+              <h3>Produto está na zona: Zona não definida</h3>
+            <% } %>
+
+            <h3>Descrição do produto abaixo:</h3>
+            <p>( <%= produto.description %> )</p>
+
+            <form action="/pedir-produto" method="POST">
+              <input type="hidden" name="produtoId" value="<%= produto.id %>">
+              <button type="submit">Pedir</button>
+            </form>
+          </div>
+        <% }) %>
+      </div>
+    </main>
+    
+    <footer>
+      <p>A vida não é um morango</p>
+      <p>&copy; 2024 EIBY. Todos os direitos reservados.</p>
+    </footer>
+  </body>
+</html>

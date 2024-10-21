@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/produtosView.css">
+    <title>home</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        background-color: #f0f0f0;
+      }
+
+      header {
+        background-color: #333;
+        color: #fff;
+        padding: 1rem;
+        position: fixed;
+        width: 100%;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+      }
+
+      nav ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+      }
+
+      nav ul li {
+        margin: 0 1rem;
+      }
+
+      nav ul li a {
+        color: #fff;
+        text-decoration: none;
+        font-weight: bold;
+      }
+
+      nav ul li a:hover {
+        text-decoration: underline;
+      }
+
+      .container {
+        padding: 10rem 2rem 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/produtos">Produtos</a></li>
+          <li><a href="/zones">Zones</a></li>
+          <% if (username.role === 'admin') { %>
+            <li><a href="/produtosadm">Produtos ADM</a></li>
+            <li><a href="/zonesadm">Zones ADM</a></li>
+          <% } %>
+          <li><a href="/sobre">Sobre</a></li>
+          <li><a href="/logout">Sair</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <div class="container">
+      <!-- Aqui vai o conteúdo da sua página -->
+    </div>
+
+    <script>
+      function adjustNavMargin() {
+        const navUl = document.querySelector('nav ul');
+        const hasScrollbar = window.innerWidth > document.documentElement.clientWidth;
+
+        // Ajusta a margem com base na presença da barra de rolagem
+        if (hasScrollbar) {
+          navUl.style.marginLeft = '15px';
+        } else {
+          navUl.style.marginLeft = '0';
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', adjustNavMargin);
+      window.addEventListener('resize', adjustNavMargin);
+    </script>
+  </body>
+</html>

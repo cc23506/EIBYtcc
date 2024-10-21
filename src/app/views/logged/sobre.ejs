@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/home.css">
+    <title>Sobre o Projeto</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        background-color: #f0f0f0;
+      }
+
+      header {
+        background-color: #333;
+        color: #fff;
+        padding: 1rem;
+        position: fixed;
+        width: 100%;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+      }
+
+      nav ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+      }
+
+      nav ul li {
+        margin: 0 1rem;
+      }
+
+      nav ul li a {
+        color: #fff;
+        text-decoration: none;
+        font-weight: bold;
+      }
+
+      nav ul li a:hover {
+        text-decoration: underline;
+      }
+
+      .container {
+        padding: 10rem 2rem 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .project-description {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+
+      .project-description h2 {
+        font-size: 1.4rem;
+        color: #333;
+        margin-top: 1.5rem;
+      }
+
+      .project-description p {
+        font-size: 1rem;
+        color: #333;
+        line-height: 1.6;
+      }
+
+      .project-description ul {
+        list-style-type: disc;
+        margin: 1rem 0;
+        padding-left: 2rem;
+      }
+
+      footer {
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        padding: 1rem;
+        position: fixed;
+        width: 100%;
+        bottom: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/produtos">Produtos</a></li>
+          <li><a href="/zones">Zones</a></li>
+          <% if (username.role === 'admin') { %>
+            <li><a href="/produtosadm">Produtos ADM</a></li>
+            <li><a href="/zonesadm">Zones ADM</a></li>
+          <% } %>
+          <li><a href="/sobre">Sobre</a></li>
+          <li><a href="/logout">Sair</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <div class="container">
+      <div class="project-description">
+        <h2>Sobre o Projeto</h2>
+        <p>
+          O projeto "Robo Almoxarifado" é uma solução inovadora que visa transformar a gestão de almoxarifados e a logística interna com o auxílio de um robô inteligente. Este robô é projetado para otimizar o processo de coleta e movimentação de objetos em ambientes de armazenamento, trazendo eficiência e precisão para operações que tradicionalmente dependem de trabalho manual.
+        </p>
+        <h2>Objetivo</h2>
+        <p>
+          O principal objetivo do "Robo Almoxarifado" é automatizar e melhorar a eficiência das operações em almoxarifados. Com a integração de tecnologias avançadas de automação e inteligência artificial, o robô facilita a organização, o transporte e a seleção de itens, reduzindo erros humanos e acelerando o processo de movimentação de inventário.
+        </p>
+        <h2>Benefícios</h2>
+        <ul>
+          <li><strong>Aumento da Eficiência:</strong> Reduz o tempo necessário para a coleta e movimentação de objetos, aumentando a eficiência operacional do almoxarifado.</li>
+          <li><strong>Redução de Erros:</strong> Minimiza a ocorrência de erros humanos na seleção e movimentação de itens, melhorando a precisão no gerenciamento de inventário.</li>
+          <li><strong>Segurança:</strong> Alivia os trabalhadores de tarefas físicas repetitivas e potencialmente perigosas.</li>
+        </ul>
+      </div>
+    </div>
+
+    <footer>
+      <p>&copy; 2024 EIBY. Todos os direitos reservados.</p>
+    </footer>
+  </body>
+</html>

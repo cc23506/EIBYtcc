@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/forms.css">
+    <title><%= zone ? 'Editar zona' : 'Adicionar nova zona' %></title>
+    <style>
+        body {
+            -webkit-user-select: none; /* Impedir seleção em navegadores WebKit */
+            -moz-user-select: none;    /* Impedir seleção em navegadores Gecko */
+            -ms-user-select: none;     /* Impedir seleção em IE/Edge */
+            user-select: none;         /* Impedir seleção nos navegadores modernos */
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+
+        /* Labels e inputs */
+        label {
+            display: block;
+            margin-top: 10px;
+            font-size: 16px;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button[type="button"] {
+            background-color: #6c757d;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button[type="button"]:hover {
+            background-color: #5a6268;
+        }
+
+        /* Canvas e imagem */
+        #image-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .image-overlay-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        #uploaded-image {
+            max-width: 100%;
+            max-height: 500px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: block;
+            user-drag: none; /* Impedir arrastar a imagem */
+            -webkit-user-drag: none; /* Safari */
+            pointer-events: none; /* Impedir interação com a imagem */
+        }
+
+        /* Certifique-se de que o canvas está alinhado com a imagem */
+        #image-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            margin: 0;
+            padding: 0;
+            border: none; /* Remover a borda para evitar deslocamento */
+        }
+
+
+        /* Zonas desenhadas sobre a imagem */
+        .zone {
+            position: absolute;
+            border: 2px solid red;
+            color: red;
+            background-color: rgba(255, 0, 0, 0.1);
+            padding: 5px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .editing-zone {
+            border: 2px solid blue;
+            color: blue;
+            background-color: rgba(0, 0, 255, 0.1);
+        }
+
+        /* Alças de redimensionamento */
+        .resize-handle {
+            width: 10px;
+            height: 10px;
+            background: blue;
+            position: absolute;
+            cursor: pointer;
+        }
+
+        .resize-handle.top-left {
+            top: -5px;
+            left: -5px;
+            cursor: nwse-resize;
+        }
+
+        .resize-handle.top-right {
+            top: -5px;
+            right: -5px;
+            cursor: nesw-resize;
+        }
+
+        .resize-handle.bottom-left {
+            bottom: -5px;
+            left: -5px;
+            cursor: nesw-resize;
+        }
+
+        .resize-handle.bottom-right {
+            bottom: -5px;
+            right: -5px;
+            cursor: nwse-resize;
+        }
+
+        /* Grade no canvas */
+        canvas {
+            border: 1px solid #ddd;
+            max-width: 100%;
+            display: block;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1><%= zone ? 'Editar zona' : 'Adicionar nova zona' %></h1>
+
+    <div class="container">
+        <form id="zone-form" action="/save-zone" method="POST" enctype="multipart/form-data">
+            <% if (zone) { %>
+                <input type="hidden" name="zoneId" value="<%= zone.id %>">
+            <% } %>
+
+            <label for="name">Nome:</label>
+            <input type="text" id="name" name="name" value="<%= zone ? zone.name : '' %>" required>
+
+            <label for="x1">X1:</label>
+            <input type="number" id="x1" name="x1" min="1" value="<%= zone ? zone.x1 : '1' %>" required>
+
+            <label for="x2">X2:</label>
+            <input type="number" id="x2" name="x2" min="1" value="<%= zone ? zone.x2 : '50' %>" required>
+
+            <label for="y1">Y1:</label>
+            <input type="number" id="y1" name="y1" min="1" value="<%= zone ? zone.y1 : '1' %>" required>
+
+            <label for="y2">Y2:</label>
+            <input type="number" id="y2" name="y2" min="1" value="<%= zone ? zone.y2 : '50' %>" required>
+
+            <button type="submit"><%= zone ? 'Salvar Alterações' : 'Adicionar' %></button>
+            <button type="button" onclick="window.location.href='/zonesadm';">Cancelar</button>
+        </form>
+
+        <div id="image-container">
+            <h3>Pré-visualização da imagem carregada:</h3>
+            <div class="image-overlay-wrapper">
+                <img id="uploaded-image" src="/<%= image ? image.imagePath : fallback %>" alt="Imagem carregada">
+                <canvas id="image-canvas"></canvas>
+
+                <% zones.forEach(zone => { %>
+                    <div class="zone <%= zone.id == editingZoneId ? 'editing-zone' : '' %>"
+                         data-id="<%= zone.id %>"
+                         data-x1="<%= zone.x1 %>"
+                         data-x2="<%= zone.x2 %>"
+                         data-y1="<%= zone.y1 %>"
+                         data-y2="<%= zone.y2 %>"
+                         style="left: <%= zone.x1 %>px; top: <%= zone.y1 %>px; width: <%= zone.x2 - zone.x1 %>px; height: <%= zone.y2 - zone.y1 %>px; pointer-events: <%= zone.id == editingZoneId ? 'auto' : 'none' %>;">
+                      <%= zone.name %>
+                      <!-- Alças de redimensionamento -->
+                      <div class="resize-handle top-left"></div>
+                      <div class="resize-handle top-right"></div>
+                      <div class="resize-handle bottom-left"></div>
+                      <div class="resize-handle bottom-right"></div>
+                    </div>
+                  <% }) %>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const canvas = document.getElementById('image-canvas');
+                const ctx = canvas.getContext('2d');
+                const uploadedImage = document.getElementById('uploaded-image');
+                const x1Input = document.getElementById('x1');
+                const x2Input = document.getElementById('x2');
+                const y1Input = document.getElementById('y1');
+                const y2Input = document.getElementById('y2');
+                let selectedZone = null;
+                let offsetX, offsetY;
+                let resizing = false;
+                let resizeHandle = null;
+                let isMouseDown = false;
+
+                const editingZoneId = <%= zone ? zone.id : 'null' %>;
+
+                function resizeCanvas() {
+                    const imageRect = uploadedImage.getBoundingClientRect();
+                    canvas.width = imageRect.width;  // Largura exibida da imagem
+                    canvas.height = imageRect.height; // Altura exibida da imagem
+                    canvas.style.top = `${uploadedImage.offsetTop}px`;  // Alinhar o topo do canvas com a imagem
+                    drawGrid();
+                }
+                
+                function drawGrid() {
+                    const step = 50;  // Tamanho da célula da grade
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                    ctx.strokeStyle = '#ddd';
+                
+                    // Linhas verticais
+                    for (let x = 0; x <= canvas.width; x += step) {
+                        ctx.beginPath();
+                        ctx.moveTo(x, 0);
+                        ctx.lineTo(x, canvas.height);
+                        ctx.stroke();
+                    }
+                
+                    // Linhas horizontais
+                    for (let y = 0; y <= canvas.height; y += step) {
+                        ctx.beginPath();
+                        ctx.moveTo(0, y);
+                        ctx.lineTo(canvas.width, y);
+                        ctx.stroke();
+                    }
+                }
+
+                function updateFormFields() {
+                    if (selectedZone) {
+                        const rect = selectedZone.getBoundingClientRect();
+                        const imageRect = uploadedImage.getBoundingClientRect();
+                        const scaleX = uploadedImage.naturalWidth / imageRect.width;
+                        const scaleY = uploadedImage.naturalHeight / imageRect.height;
+
+                        x1Input.value = Math.round((rect.left - imageRect.left) * scaleX);
+                        y1Input.value = Math.round((rect.top - imageRect.top) * scaleY);
+                        x2Input.value = Math.round((rect.right - imageRect.left) * scaleX);
+                        y2Input.value = Math.round((rect.bottom - imageRect.top) * scaleY);
+                    }
+                }
+
+                document.querySelectorAll('.zone').forEach(zone => {
+                    zone.addEventListener('mousedown', function (e) {
+                        const zoneId = parseInt(zone.getAttribute('data-id'));
+
+                        if (editingZoneId && zoneId !== editingZoneId) {
+                            return;
+                        }
+
+                        if (e.target.classList.contains('resize-handle')) {
+                            resizing = true;
+                            resizeHandle = e.target;
+                        } else {
+                            resizing = false;
+                            resizeHandle = null;
+                            selectedZone = zone;
+                        }
+
+                        isMouseDown = true;
+                        const zoneRect = zone.getBoundingClientRect();
+                        const imageRect = uploadedImage.getBoundingClientRect();
+                        offsetX = e.clientX - zoneRect.left;
+                        offsetY = e.clientY - zoneRect.top;
+                    });
+
+                    zone.addEventListener('click', function (e) {
+                        const zoneId = parseInt(zone.getAttribute('data-id'));
+
+                        if (editingZoneId && zoneId !== editingZoneId) {
+                            return;
+                        }
+
+                        document.querySelectorAll('.zone').forEach(zone => zone.classList.remove('editing-zone'));
+                        zone.classList.add('editing-zone');
+                        selectedZone = zone;
+                        updateFormFields();
+                    });
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (!selectedZone && e.target !== uploadedImage) {
+                        document.querySelectorAll('.zone').forEach(zone => zone.classList.remove('editing-zone'));
+                        selectedZone = null;
+                    }
+                });
+
+                document.addEventListener('mousemove', function (e) {
+                    if (!selectedZone) return;
+                
+                    const imageRect = uploadedImage.getBoundingClientRect();
+                
+                    if (resizing && isMouseDown) {
+                        const zoneRect = selectedZone.getBoundingClientRect();
+                        const mouseX = e.clientX;
+                        const mouseY = e.clientY;
+                
+                        if (resizeHandle.classList.contains('top-left')) {
+                            const newWidth = zoneRect.right - mouseX;
+                            const newHeight = zoneRect.bottom - mouseY;
+
+                            if (newWidth > 0 && newHeight > 0 && mouseX >= imageRect.left && mouseY >= imageRect.top) {
+                                selectedZone.style.width = `${Math.min(newWidth, zoneRect.right - imageRect.left)}px`;
+                                selectedZone.style.height = `${Math.min(newHeight, zoneRect.bottom - imageRect.top)}px`;
+                                selectedZone.style.left = `${mouseX}px`;
+                                selectedZone.style.top = `${mouseY}px`;
+                            }
+                        } else if (resizeHandle.classList.contains('top-right')) {
+                            const newWidth = mouseX - zoneRect.right;
+                            const newHeight = mouseY - zoneRect.top;
+                
+                            if (newWidth > 0 && newHeight > 0 && mouseX <= imageRect.right && mouseY <= imageRect.bottom) {
+                                selectedZone.style.width = `${Math.min(newWidth, imageRect.right - zoneRect.left)}px`;
+                                selectedZone.style.height = `${Math.min(newHeight, imageRect.bottom - zoneRect.top)}px`;
+                            }
+                        } else if (resizeHandle.classList.contains('bottom-left')) {
+                            const newWidth = mouseX - zoneRect.left;
+                            const newHeight = mouseY - zoneRect.bottom;
+                
+                            if (newWidth > 0 && newHeight > 0 && mouseX <= imageRect.right && mouseY <= imageRect.bottom) {
+                                selectedZone.style.width = `${Math.min(newWidth, imageRect.right - zoneRect.left)}px`;
+                                selectedZone.style.height = `${Math.min(newHeight, imageRect.bottom - zoneRect.top)}px`;
+                            }
+                        } else if (resizeHandle.classList.contains('bottom-right')) {
+                            const newWidth = mouseX - zoneRect.left;
+                            const newHeight = mouseY - zoneRect.top;
+                
+                            if (newWidth > 0 && newHeight > 0 && mouseX <= imageRect.right && mouseY <= imageRect.bottom) {
+                                selectedZone.style.width = `${Math.min(newWidth, imageRect.right - zoneRect.left)}px`;
+                                selectedZone.style.height = `${Math.min(newHeight, imageRect.bottom - zoneRect.top)}px`;
+                            }
+                        }
+                
+                        updateFormFields();
+                    } else if (isMouseDown) {
+                        const zoneRect = selectedZone.getBoundingClientRect();
+                        const mouseX = e.clientX;
+                        const mouseY = e.clientY;
+                
+                        // Evitar que a zona seja movida para fora da imagem
+                        const newLeft = Math.min(Math.max(mouseX - offsetX, imageRect.left), imageRect.right - zoneRect.width);
+                        const newTop = Math.min(Math.max(mouseY - offsetY, imageRect.top), imageRect.bottom - zoneRect.height);
+                
+                        selectedZone.style.left = `${newLeft - imageRect.left}px`;
+                        selectedZone.style.top = `${newTop - imageRect.top}px`;
+                
+                        updateFormFields();
+                    }
+                });
+                
+
+                document.addEventListener('mouseup', function () {
+                    isMouseDown = false;
+                    resizing = false;
+                    resizeHandle = null;
+                });
+
+                resizeCanvas();
+                drawGrid();
+
+                function updateZoneFromInputs() {
+                    if (selectedZone) {
+                        const imageRect = uploadedImage.getBoundingClientRect();
+                        const scaleX = uploadedImage.naturalWidth / imageRect.width;
+                        const scaleY = uploadedImage.naturalHeight / imageRect.height;
+                
+                        const x1 = parseFloat(x1Input.value) / scaleX;
+                        const y1 = parseFloat(y1Input.value) / scaleY;
+                        const x2 = parseFloat(x2Input.value) / scaleX;
+                        const y2 = parseFloat(y2Input.value) / scaleY;
+                
+                        selectedZone.style.left = `${x1 * scaleX}px`;  // Corrigir a escala
+                        selectedZone.style.top = `${y1 * scaleY}px`;
+                        selectedZone.style.width = `${(x2 - x1) * scaleX}px`;
+                        selectedZone.style.height = `${(y2 - y1) * scaleY}px`;
+                    }
+                }
+                
+                // Adicionar eventos 'input' para atualizar a zona
+                x1Input.addEventListener('input', updateZoneFromInputs);
+                x2Input.addEventListener('input', updateZoneFromInputs);
+                y1Input.addEventListener('input', updateZoneFromInputs);
+                y2Input.addEventListener('input', updateZoneFromInputs);
+                
+            });
+        </script>
+    </body>
+</html>

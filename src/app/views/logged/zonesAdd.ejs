@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/forms.css">
+    <title>Adicionar Zona</title>
+    <style>
+        body {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            font-size: 16px;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button[type="button"] {
+            background-color: #6c757d;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button[type="button"]:hover {
+            background-color: #5a6268;
+        }
+
+        #image-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .image-overlay-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        #uploaded-image {
+            max-width: 100%;
+            max-height: 500px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: block;
+            -webkit-user-drag: none;
+            pointer-events: none;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            border: 1px solid #ddd;
+            display: block;
+        }
+
+        .zone-label {
+            position: absolute;
+            font-size: 14px;
+            color: red;
+            background-color: rgba(255, 0, 0, 0.1);
+            padding: 2px;
+        }
+
+        .error-message {
+            color: red;
+            margin-top: -15px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Adicionar Nova Zona</h1>
+
+    <div class="container">
+        <form id="zone-form" action="/save-zone" method="POST">
+            <label for="name">Nome:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="x1">X1:</label>
+            <input type="number" id="x1" name="x1" min="1" required>
+
+            <label for="x2">X2:</label>
+            <input type="number" id="x2" name="x2" min="1" required>
+
+            <label for="y1">Y1:</label>
+            <input type="number" id="y1" name="y1" min="1" required>
+
+            <label for="y2">Y2:</label>
+            <input type="number" id="y2" name="y2" min="1" required>
+
+            <input type="hidden" id="imageId" name="imageId" value="<%= imageId %>">
+
+            <button type="submit">Adicionar Zona</button>
+            <button type="button" onclick="window.location.href='/zonesadm';">Cancelar</button>
+        </form>
+
+        <div id="image-container">
+            <h3>Pré-visualização da imagem carregada:</h3>
+            <div class="image-overlay-wrapper">
+                <img id="uploaded-image" src="<%= imagePath %>" alt="Imagem carregada">
+                <canvas id="image-canvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const canvas = document.getElementById('image-canvas');
+            const ctx = canvas.getContext('2d');
+            const uploadedImage = document.getElementById('uploaded-image');
+
+            const x1Input = document.getElementById('x1');
+            const x2Input = document.getElementById('x2');
+            const y1Input = document.getElementById('y1');
+            const y2Input = document.getElementById('y2');
+            const nameInput = document.getElementById('name');
+            const errorMessage = document.getElementById('error-message');
+
+            const existingZones = <%- JSON.stringify(zones) %> || [];
+            let imageNaturalWidth = 0;
+            let imageNaturalHeight = 0;
+
+            function drawZone(x1, y1, x2, y2, name, color = 'red') {
+                const rectX1 = (x1 / imageNaturalWidth) * canvas.width;
+                const rectY1 = (y1 / imageNaturalHeight) * canvas.height;
+                const rectWidth = (x2 - x1) / imageNaturalWidth * canvas.width;
+                const rectHeight = (y2 - y1) / imageNaturalHeight * canvas.height;
+
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                ctx.strokeRect(rectX1, rectY1, rectWidth, rectHeight);
+
+                if (name) {
+                    ctx.font = '14px Arial';
+                    ctx.fillStyle = color;
+                    ctx.fillText(name, rectX1 + 5, rectY1 - 5);
+                }
+            }
+
+            function drawAllZones() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                existingZones.forEach(zone => {
+                    drawZone(zone.x1, zone.y1, zone.x2, zone.y2, zone.name, 'blue');
+                });
+
+                const x1 = parseInt(x1Input.value) || 0;
+                const x2 = parseInt(x2Input.value) || 0;
+                const y1 = parseInt(y1Input.value) || 0;
+                const y2 = parseInt(y2Input.value) || 0;
+                const name = nameInput.value.trim();
+
+                if (x2 > x1 && y2 > y1) {
+                    drawZone(x1, y1, x2, y2, name, 'red');
+                    errorMessage.textContent = ''; // Clear error message
+                }
+            }
+
+            function setupCanvas() {
+                const imageRect = uploadedImage.getBoundingClientRect();
+                canvas.width = imageRect.width;
+                canvas.height = imageRect.height;
+
+                x1Input.max = imageNaturalWidth;
+                x2Input.max = imageNaturalWidth;
+                y1Input.max = imageNaturalHeight;
+                y2Input.max = imageNaturalHeight;
+
+                drawAllZones();
+            }
+
+            if (uploadedImage.complete) {
+                imageNaturalWidth = uploadedImage.naturalWidth;
+                imageNaturalHeight = uploadedImage.naturalHeight;
+                setupCanvas();
+            } else {
+                uploadedImage.addEventListener('load', function () {
+                    imageNaturalWidth = uploadedImage.naturalWidth;
+                    imageNaturalHeight = uploadedImage.naturalHeight;
+                    setupCanvas();
+                });
+            }
+
+            window.addEventListener('resize', setupCanvas);
+            [x1Input, x2Input, y1Input, y2Input, nameInput].forEach(input => {
+                input.addEventListener('input', drawAllZones);
+            });
+        });
+    </script>
+</body>
+</html>

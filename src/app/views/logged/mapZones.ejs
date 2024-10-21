@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adicionar Nova Imagem</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  
+  <h1>Adicionar Nova Imagem do Mapa</h1>
+
+  <form action="/upload-map" method="POST" enctype="multipart/form-data">
+    <div>
+      <label for="image">Escolha a imagem do mapa:</label>
+      <input type="file" id="image" name="image" accept="image/png, image/jpeg, image/svg+xml" required>
+    </div>
+    <!-- Campo oculto para enviar o ID do usuário -->
+    <input type="hidden" name="user_id" value="<%= user %>"> <!-- Aqui o "user" contém o ID do usuário -->
+
+    <button type="submit">Upload</button>
+  </form>
+
+  <a href="/">Voltar</a>
+</body>
+</html>
