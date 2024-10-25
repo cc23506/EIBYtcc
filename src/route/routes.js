@@ -34,7 +34,7 @@ router.get('/logout', controller.logout);
 router.get('/sobre', controller.showSobre);
 router.post('/pedir-produto', controller.pedirProduto);
 router.get('/status-robot', controller.statusRobot);
-router.post('/editar-produto/:produtoId', controller.editProduto);
+router.post('/edit-produto/:produtoId', controller.editProduto);
 router.post('/editar-zone/:zoneId', controller.editZone);
 router.post('/save-produto', controller.saveProduto);
 router.post('/save-zone', controller.saveZone);

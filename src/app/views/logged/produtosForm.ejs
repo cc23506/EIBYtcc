@@ -90,7 +90,7 @@ button:hover {
     <h1><%= produto ? 'Editar Produto' : 'Adicionar Novo Produto' %></h1>
     
     <div class="form-container">
-        <form action="<%= produto ? '/edit-produto/' + produto.id : '/save-produto' %>" method="POST">
+        <form action="<%= produto ? '/save-produto/' + produto.id : '/save-produto' %>" method="POST">
             <% if (produto) { %>
                 <input type="hidden" name="produtoId" value="<%= produto.id %>">
             <% } %>
