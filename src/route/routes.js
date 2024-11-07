@@ -22,35 +22,36 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// Rotas
 router.get('/', controller.showLogin);
 router.post('/login', controller.login);
-
 router.get('/home', controller.showHome);
-router.get('/editAll', controller.showEditable);
 
 router.get('/produtos', controller.showProdutos);
-router.get('/produtosEdit', controller.showProdutosEdit);
-
-router.get('/zones', controller.showZones);
-router.get('/zonesEdit', controller.showZonesEdit);
-
-router.get('/logout', controller.logout);
-router.get('/sobre', controller.showSobre);
-
 router.post('/pedir-produto', controller.pedirProduto);
 router.get('/status-robot', controller.statusRobot);
+
+router.get('/zones', controller.showZones);
+
+router.get('/editAll', controller.showEditable);
+router.get('/produtosEdit', controller.showProdutosEdit);
+router.post('/novo-produto', controller.newProduto);
 router.post('/editar-produto/:produtoId', controller.editProduto);
-router.post('/editar-zone/:zoneId', controller.editZone);
 router.post('/save-produto', controller.saveProduto);
 router.post('/save-produto/:produtoId', controller.saveProduto);
-router.post('/save-zone', controller.saveZone);
 router.post('/delete-produto', controller.delProduto);
-router.post('/delete-zone', controller.delZone);
-router.post('/novo-produto', controller.newProduto);
+
+router.get('/zonesEdit', controller.showZonesEdit);
 router.post('/new-zone', controller.newZone);
 router.post('/new-map', controller.newMap);
-
 router.post('/upload-map', upload.single('image'), controller.uploadMap);
+
+router.post('/editar-zone/:zoneId', controller.editZone);
+router.post('/save-zone', controller.saveZone);
+router.post('/save-zone/:zoneId', controller.saveZone);
+router.post('/delete-zone', controller.delZone);
+
+router.get('/sobre', controller.showSobre);
+
+router.get('/logout', controller.logout);
 
 module.exports = router;

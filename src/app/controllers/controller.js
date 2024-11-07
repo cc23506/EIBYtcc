@@ -6,10 +6,9 @@ exports.showLogin = (req, res) => {
   if (req.session.username){
     return res.redirect('/home');
   }
-  res.render('login/login', { error: undefined });
+  res.render('login/login');
 };
 
-// Função para processar o login
 exports.login = async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -62,12 +61,6 @@ exports.pedirProduto = async (req, res) => {
       requester: req.session.username,
       product: produto.name,
       zone: zone
-    });
-
-    res.render('logged/buscaProduto', {
-      username: req.session.username,
-      produto,
-      zone
     });
 
     if (response.data.success) {
@@ -357,7 +350,7 @@ exports.showZonesEdit = async (req, res) => {
   try {
     const zones = await Model.findZone();
     if (req.session.username && req.session.username.role === 'admin') {
-      res.render('logged/zones', {
+      res.render('logged/zonesEdit', {
         username: req.session.username,
         zones: zones
       });
@@ -372,32 +365,27 @@ exports.showZonesEdit = async (req, res) => {
 
 exports.showZones = async (req, res) => {
   try {
-    // Verifica se o usuário está autenticado
     if (!req.session.username || !req.session.username.id) {
-      return res.redirect('/'); // Redireciona se não estiver autenticado
+      return res.redirect('/');
     }
 
-    // Obtém o nome do usuário e o ID
     const username = req.session.username.username;
     const userId = req.session.username.id;
 
-    // Busca a imagem mais recente do usuário e suas zonas
     const latestImage = await Model.findLatestImageByUser(userId);
 
-    // Verifica se a imagem existe
     if (!latestImage) {
       return renderErrorWithRedirect(req, res, 'É necessário enviar um arquivo para acessar a zona.');
     }
 
-    // Ajusta o caminho da imagem para ser relativo ao diretório público
     const imagePath = latestImage.imagePath.replace(/.*public\\uploads\\/, '');
 
     const zones = await Model.findZoneByPathId(latestImage.id);
 
-    res.render('logged/zonesView', {
-      username: username,   // Nome do usuário
-      imagePath: imagePath, // Caminho relativo da imagem
-      zones: zones || []    // Passa uma lista vazia se não houver zonas
+    res.render('logged/zones', {
+      username: username,
+      imagePath: imagePath,
+      zones: zones || []
     });
   } catch (error) {
     console.error(error);
