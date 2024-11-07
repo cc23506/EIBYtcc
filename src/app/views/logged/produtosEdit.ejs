@@ -4,8 +4,9 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/css/produtos.css">
-  <title>Catálogo</title>
+  <link rel="stylesheet" href="/css/produtosEdit.css">
+  <title>Editar Produtos</title>
+  
 </head>
 
 <body>
@@ -24,6 +25,10 @@
     </nav>
   </header>
   
+  <form action="/novo-produto" method="POST">
+    <button type="submit" class="fixed-button">Adicionar novo</button>
+  </form>
+
   <div class="center">
     <div id="p-container">
       <% produtos.forEach(function(produto) { %>
@@ -31,17 +36,23 @@
           <h3><%= produto.id %> - <%= produto.name %></h3>
           <h3>Descrição do produto abaixo:</h3>
           <p>( <%= produto.description %> )</p>
-          <form action="/pedir-produto" method="POST">
-            <input type="hidden" name="produtoId" value="<%= produto.id %>">
-            <button type="submit">Pedir</button>
-          </form>
+          <nav id="displaybtns">
+            <form action="/editar-produto/<%= produto.id %>" method="POST">
+              <input type="hidden" name="produtoId" value="<%= produto.id %>">
+              <button type="submit">Editar</button>
+            </form>
+            <form action="/delete-produto" method="POST">
+              <input type="hidden" name="produtoId" value="<%= produto.id %>">
+              <button type="submit">Excluir</button>
+            </form>
+          </nav>
         </div>
       <% }) %>
     </div>
   </div>
 
   <footer>
-    <p>A vida não é um morango</p>
+    <p>A vida não é um morango.</p>
     <p>&copy; 2024 EIBY. Todos os direitos reservados.</p>
   </footer>
 </body>

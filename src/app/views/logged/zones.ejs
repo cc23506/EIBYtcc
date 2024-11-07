@@ -1,228 +1,119 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="/css/home.css">
-        <title>Catálogo</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-                background-color: #f0f0f0;
-            }
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualizar Zonas</title>
+  <!-- <link rel="stylesheet" href="/css/style.css"> -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      background-color: #f7f7f7;
+    }
 
-            header {
-                background-color: #333;
-                color: #fff;
-                padding: 1rem;
-                position: fixed;
-                width: 100%;
-                top: 0;
-                left: 0;
-                z-index: 1000;
-            }
+    h1 {
+      text-align: center;
+      margin-top: 20px;
+      color: #333;
+    }
 
-            nav ul {
-                list-style-type: none;
-                padding: 0;
-                margin: 0;
-                display: flex;
-                justify-content: center;
-            }
+    #image-container {
+      position: relative; /* Permite o posicionamento absoluto dos elementos filhos */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
 
-            nav ul li {
-                margin: 0 1rem;
-            }
+    #zone-image {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
 
-            nav ul li a {
-                color: #fff;
-                text-decoration: none;
-                font-weight: bold;
-            }
+    .zone {
+      position: absolute; /* Posiciona a zona sobre a imagem */
+      border: 2px solid rgba(255, 0, 0, 0.7);
+      color: rgba(255, 0, 0, 0.7);
+      padding: 5px;
+      background-color: rgba(255, 0, 0, 0.2);
+      border-radius: 5px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
 
-            nav ul li a:hover {
-                text-decoration: underline;
-            }
+    .zone:hover {
+      background-color: rgba(255, 0, 0, 0.4);
+      border-color: #f00;
+      color: #fff;
+      cursor: pointer;
+    }
 
-            .container {
-                padding: 10rem 2rem 2rem;
-                max-width: 1200px;
-                margin: 0 auto;
-            }
+    .no-zones-message {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #777;
+    }
 
-            .center {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                gap: 20px; /* Espaçamento entre os elementos */
-            }
+    a {
+      display: block;
+      text-align: center;
+      margin-top: 30px;
+      color: #007bff;
+      text-decoration: none;
+      font-size: 1rem;
+    }
 
-            .zone-info {
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-                align-items: center;
-                gap: 20px;
-                text-align: center;
-                width: 100%;
-                padding: 20px;
-                background-color: #fff;
-                border-radius: 8px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            }
+    a:hover {
+      text-decoration: underline;
+    }
 
-            .zone-info > div {
-                width: 250px;
-                text-align: center;
-            }
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+      #zone-image {
+        max-width: 90%;
+      }
+      .zone {
+        font-size: 0.9rem;
+        padding: 4px;
+      }
+    }
 
-            /* Linha separadora entre as zonas */
-            .zone-info + .zone-info {
-                margin-top: 20px;
-                border-top: 2px solid #ddd; /* Linha fina entre as zonas */
-                padding-top: 20px;
-            }
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.2rem;
+      }
+      .zone {
+        font-size: 0.8rem;
+        padding: 3px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Zonas Disponíveis para <%= username %></h1>
 
-            footer {
-                background-color: #333;
-                color: #fff;
-                text-align: center;
-                padding: 1rem;
-                margin-top: 2rem;
-            }
+  <div id="image-container">
+    <!-- Exibe a imagem mais recente -->
+    <img src="<%= imagePath %>" alt="Imagem da Zona" id="zone-image">
 
-            /* Estilos para os botões */
-            button {
-                padding: 0.5rem 1rem;
-                font-size: 1rem;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                margin-top: 1rem;
-                margin-right: 1rem;
-            }
-
-            /* Botão Editar */
-            .edit-button {
-                background-color: #2196F3; /* Azul */
-                color: white;
-            }
-
-            .edit-button:hover {
-                background-color: #1976D2; /* Azul mais escuro */
-            }
-
-            /* Botão Excluir */
-            .delete-button {
-                background-color: #2196F3; /* Azul */
-                color: white;
-            }
-
-            .delete-button:hover {
-                background-color: #1976D2; /* Azul mais escuro */
-            }
-
-            /* Botões de Adicionar Nova Zona/Mapa em verde */
-            .add-zone-button,
-            .add-map-button {
-                background-color: #4CAF50; /* Verde */
-                color: white;
-            }
-
-            .add-zone-button:hover,
-            .add-map-button:hover {
-                background-color: #45a049; /* Verde mais escuro */
-            }
-        </style>
-    </head>
-
-    <body>
-        <header>
-            <nav>
-                <ul>
-                    <li><a href="/">Home</a></li>
-                    <li><a href="/produtos">Produtos</a></li>
-                    <li><a href="/zones">Zones</a></li>
-                    <% if (username.role === 'admin') { %> <!-- Verifica se o usuário é admin, se for aparece opção produtos, se não for, não mostra a opção de produtos -->
-                        <li><a href="/produtosadm">Produtos ADM</a></li>
-                        <li><a href="/zonesadm">Zones ADM</a></li>
-                    <% } %>
-                    <li><a href="/sobre">Sobre</a></li>
-                    <li><a href="/logout">Sair</a></li>
-                </ul>
-            </nav>
-        </header>
-
-        <div class="container">
-            <div class="center">
-                <% zones.forEach(function(zone) { %>
-                    <div class="zone-info">
-                        <!-- Parte de cima: ID da Zona e Nome -->
-                        <div>
-                            <h3><%= zone.id %> - <%= zone.name %></h3>
-                        </div>
-
-                        <!-- Parte de baixo: Coordenadas e Botões -->
-                        <div>
-                            <h3>Coordenadas do zone abaixo:</h3>
-                            <p>X1: <%= zone.x1 %>, X2: <%= zone.x2 %></p>
-                            <p>Y1: <%= zone.y1 %>, Y2: <%= zone.y2 %></p>
-                        </div>
-
-                        <!-- Botões Editar e Excluir -->
-                        <div>
-                            <form action="/editar-zone/<%= zone.id %>" method="POST">
-                                <input type="hidden" name="zoneId" value="<%= zone.id %>">
-                                <button class="edit-button" type="submit">Editar</button> <!-- Botão Editar -->
-                            </form>
-
-                            <form action="/delete-zone" method="POST">
-                                <input type="hidden" name="zoneId" value="<%= zone.id %>">
-                                <button class="delete-button" type="submit">Excluir</button> <!-- Botão Excluir -->
-                            </form>
-                        </div>
-                    </div>
-                <% }) %>
-
-                <!-- Botões Adicionar Nova Zona e Novo Mapa -->
-                <form action="/new-zone" method="POST">
-                    <br><br>
-                    <button class="add-zone-button" type="submit">Adicionar nova zona</button> <!-- Botão Adicionar Nova Zona em verde -->
-                </form>
-
-                <form action="/new-map" method="POST">
-                    <br><br>
-                    <button class="add-map-button" type="submit">Adicionar novo mapa</button> <!-- Botão Adicionar Novo Mapa em verde -->
-                </form>
-            </div>
+    <% if (zones.length > 0) { %>
+      <% zones.forEach(zone => { %>
+        <div class="zone" style="left: <%= zone.x1 %>px; top: <%= zone.y1 %>px; width: <%= zone.x2 - zone.x1 %>px; height: <%= zone.y2 - zone.y1 %>px;">
+          <%= zone.name %>
         </div>
+      <% }) %>
+    <% } else { %>
+      <p class="no-zones-message">Nenhuma zona disponível para esta imagem.</p>
+    <% } %>
+  </div>
 
-        <footer>
-            <p>A vida não é um morango</p>
-            <p>&copy; 2024 EIBY. Todos os direitos reservados.</p>
-        </footer>
-
-        <script>
-            function adjustNavMargin() {
-                const navUl = document.querySelector('nav ul');
-                const hasScrollbar = window.innerWidth > document.documentElement.clientWidth;
-
-                // Ajusta a margem com base na presença da barra de rolagem
-                if (hasScrollbar) {
-                    navUl.style.marginLeft = '15px';
-                } else {
-                    navUl.style.marginLeft = '0';
-                }
-            }
-
-            document.addEventListener('DOMContentLoaded', adjustNavMargin);
-            window.addEventListener('resize', adjustNavMargin);
-        </script>
-    </body>
+  <a href="/">Voltar</a>
+</body>
 </html>

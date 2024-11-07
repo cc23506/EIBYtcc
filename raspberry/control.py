@@ -1,12 +1,7 @@
 import time
 import cv2
 import numpy as np
-
-# Tentando importar RPi.GPIO e substituindo pelo mock em caso de falha (caso não esteja no Raspberry Pi)
-try:
-    import RPi.GPIO as GPIO
-except (ImportError, RuntimeError):
-    from mock_gpio import GPIO
+import RPi.GPIO as GPIO
 
 # Configurações GPIO
 GPIO.setmode(GPIO.BCM)
@@ -15,7 +10,7 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(17, GPIO.OUT)  # Motor esquerdo IN1
 GPIO.setup(18, GPIO.OUT)  # Motor esquerdo IN2
 GPIO.setup(23, GPIO.OUT)  # Motor direito IN3
-GPIO.setup(24, GPIO.OUT)  # Motor direito IN4
+GPIO.setup(24, GPIO.OUT)  # Motor direito I4N
 
 # Configuração do servo motor
 servo_pin = 22
@@ -99,7 +94,7 @@ def parar_robot():
     status_robot["status"] = "parado"
     status_robot["product"] = None
 
-""" def detectar_objeto(product_name):
+def detectar_objeto(product_name):
     net = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
     layer_names = net.getLayerNames()
     output_layers = [layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
@@ -136,61 +131,69 @@ def parar_robot():
 
     cap.release()
     cv2.destroyAllWindows()
-    parar_robot() """
+    parar_robot()
 
-def detectar_objeto(product_name):
-    net = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
-    layer_names = net.getLayerNames()
-    output_layers = [layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
-    cap = cv2.VideoCapture(0)
+from queue import PriorityQueue
 
-    status_robot["status"] = "detectando"
-    status_robot["product"] = product_name
+# Parâmetros do ambiente
+grid_size = (50, 50)  # Exemplo de grid 50x50
+obstacles = {(10, 10), (15, 15)}  # Exemplo de obstáculos
 
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            break
-        
-        height, width, channels = frame.shape
+def heuristica(a, b):
+    # Distância Manhattan
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
-        # Preprocessamento da imagem para a rede YOLO
-        blob = cv2.dnn.blobFromImage(frame, 0.00392, (416, 416), (0, 0, 0), True, crop=False)
-        net.setInput(blob)
-        outs = net.forward(output_layers)
+def a_star(start, goal):
+    fila_prioridade = PriorityQueue()
+    fila_prioridade.put((0, start))
+    came_from = {start: None}
+    cost_so_far = {start: 0}
 
-        # Analisando as saídas da rede
-        for out in outs:
-            for detection in out:
-                scores = detection[5:]
-                class_id = np.argmax(scores)
-                confidence = scores[class_id]
+    while not fila_prioridade.empty():
+        _, current = fila_prioridade.get()
 
-                # Detecta um objeto com confiança maior que 0.5
-                if confidence > 0.5:
-                    center_x = int(detection[0] * width)
-                    center_y = int(detection[1] * height)
-                    w = int(detection[2] * width)
-                    h = int(detection[3] * height)
-
-                    # Desenha o retângulo ao redor do objeto detectado
-                    x = int(center_x - w / 2)
-                    y = int(center_y - h / 2)
-                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
-        # Exibe o frame com os objetos detectados
-        cv2.imshow("Camera", frame)
-
-        # Interrompe o loop se a tecla 'ESC' for pressionada
-        if cv2.waitKey(1) == 27:
+        if current == goal:
             break
 
-    cap.release()
-    cv2.destroyAllWindows()
+        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            neighbor = (current[0] + dx, current[1] + dy)
+            if 0 <= neighbor[0] < grid_size[0] and 0 <= neighbor[1] < grid_size[1]:
+                if neighbor in obstacles:
+                    continue
+                new_cost = cost_so_far[current] + 1
+                if neighbor not in cost_so_far or new_cost < cost_so_far[neighbor]:
+                    cost_so_far[neighbor] = new_cost
+                    priority = new_cost + heuristica(goal, neighbor)
+                    fila_prioridade.put((priority, neighbor))
+                    came_from[neighbor] = current
+
+    # Reconstruir o caminho
+    path = []
+    current = goal
+    while current != start:
+        path.append(current)
+        current = came_from.get(current)
+    path.reverse()
+    return path
+
+
+def calcular_rota(destino):
+    start = (0, 0)  # Posição inicial do robô
+    path = a_star(start, destino)
     
-    # Atualiza o status do robô
-    status_robot["status"] = "parado"
-    status_robot["product"] = None
+    for step in path:
+        if step[0] > start[0]:
+            move_robot("direita")
+        elif step[0] < start[0]:
+            move_robot("esquerda")
+        elif step[1] > start[1]:
+            move_robot("frente")
+        elif step[1] < start[1]:
+            move_robot("tras")
+        start = step
+        time.sleep(0.5)
+    
+    move_robot("parar")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,142 @@
+body {
+font-family: Arial, sans-serif;
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+background-color: #f0f0f0;
+}
+
+header {
+background-color: #333;
+color: #fff;
+padding: 1rem;
+position: fixed;
+width: 100%;
+top: 0;
+left: 0;
+z-index: 1000;
+}
+
+nav ul {
+list-style-type: none;
+padding: 0;
+margin: 0;
+display: flex;
+justify-content: center;
+}
+
+nav ul li {
+margin: 0 1rem;
+}
+
+nav ul li a {
+color: #fff;
+text-decoration: none;
+font-weight: bold;
+}
+
+nav ul li a:hover {
+text-decoration: underline;
+}
+
+.container {
+padding: 10rem 2rem 2rem;
+max-width: 1200px;
+margin: 0 auto;
+}
+
+.center {
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 20px; /* Espaçamento entre os elementos */
+}
+
+.zone-info {
+display: flex;
+flex-wrap: wrap;
+justify-content: center;
+align-items: center;
+gap: 20px;
+text-align: center;
+width: 100%;
+padding: 20px;
+background-color: #fff;
+border-radius: 8px;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.zone-info > div {
+width: 250px;
+text-align: center;
+}
+
+/* Linha separadora entre as zonas */
+.zone-info + .zone-info {
+margin-top: 20px;
+border-top: 2px solid #ddd; /* Linha fina entre as zonas */
+padding-top: 20px;
+}
+
+footer {
+background-color: #333;
+color: #fff;
+text-align: center;
+padding: 1rem;
+margin-top: 2rem;
+}
+
+/* Estilos para os botões */
+button {
+padding: 0.5rem 1rem;
+font-size: 1rem;
+border: none;
+border-radius: 5px;
+cursor: pointer;
+transition: all 0.3s ease;
+margin-top: 1rem;
+margin-right: 1rem;
+}
+
+/* Botão Editar */
+.edit-button {
+background-color: #2196F3; /* Azul */
+color: white;
+}
+
+.edit-button:hover {
+background-color: #1976D2; /* Azul mais escuro */
+}
+
+/* Botão Excluir */
+.delete-button {
+background-color: #2196F3; /* Azul */
+color: white;
+}
+
+.delete-button:hover {
+background-color: #1976D2; /* Azul mais escuro */
+}
+
+/* Botões de Adicionar Nova Zona/Mapa em verde */
+.add-zone-button,
+.add-map-button {
+background-color: #4CAF50; /* Verde */
+color: white;
+}
+
+.add-zone-button:hover,
+.add-map-button:hover {
+background-color: #45a049; /* Verde mais escuro */
+}
+
+footer {
+background-color: #333;
+color: #fff;
+text-align: center;
+padding: 1rem;
+position: fixed;
+width: 100%;
+bottom: 0;
+}
