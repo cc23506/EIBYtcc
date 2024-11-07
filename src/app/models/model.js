@@ -14,7 +14,7 @@ async function findProduct() {
 
 async function findProductById(productId) {
   const pool = await db.connect();
-  const [rows] = await pool.execute(`
+  const [rows] = await pođol.execute(`
     SELECT *FROM products WHERE id = ?`, [productId]
   );
   return rows[0];
