@@ -185,7 +185,6 @@ exports.editProduto = async (req, res) => {
   }
 
   try {
-    // Busca o produto pelo ID e a zona associada
     const produto = await Model.findProductById(produtoId);
     const zonas = await Model.findZone();
 
@@ -211,7 +210,7 @@ exports.editProduto = async (req, res) => {
   }
 };
 
-exports.showProdutosADM = async (req, res) => {
+exports.showProdutosEdit = async (req, res) => {
   if (!req.session.username) {
     return res.redirect('/');
   }
@@ -225,7 +224,7 @@ exports.showProdutosADM = async (req, res) => {
     }));
 
     if (req.session.username.role === 'admin') {
-      res.render('logged/produtos', {
+      res.render('logged/produtosEdit', {
         username: req.session.username,
         role: req.session.username.role,
         produtos: produtosComZonas  // Envie os produtos com as zonas
@@ -253,10 +252,10 @@ exports.showProdutos = async (req, res) => {
       return { ...produto, zona };
     }));
 
-    res.render('logged/produtosView', {
+    res.render('logged/produtos', {
       username: req.session.username,
       role: req.session.role,
-      produtos: produtosComZonas  // Envie os produtos com as zonas
+      produtos: produtosComZonas 
     });
   } catch (error) {
     console.error(error);
@@ -270,6 +269,17 @@ exports.showHome = async (req, res) => {
   }
 
   res.render('logged/home', {
+    username: req.session.username,
+    role: req.session.username.role,
+  })
+};
+
+exports.showEditable = async (req, res) => {
+  if (!req.session.username) {
+    return res.redirect('/');
+  }
+
+  res.render('logged/editAll', {
     username: req.session.username,
     role: req.session.username.role,
   })
@@ -315,8 +325,8 @@ exports.editZone = async (req, res) => {
   const userId = req.session.username.id;
   const latestImage = await Model.findLatestImageByUser(userId);
   const zones = await Model.findZoneByPathId(latestImage.id);
-  const imagePath = latestImage.imagePath.replace(/.*public\\uploads\\/, '');
   const zone = await Model.findZoneById(zoneId);
+  const imagePath = latestImage.imagePath.replace(/.*public\\uploads\\/, '');
 
   try {
 
@@ -328,7 +338,7 @@ exports.editZone = async (req, res) => {
       return res.status(404).send('Imagem não encontrada');
     }
 
-    res.render('logged/zonesEdit', {
+    res.render('logged/zonesForm', {
       username: req.session.username,
       role: req.session.role,
       zone,
@@ -343,7 +353,7 @@ exports.editZone = async (req, res) => {
   }
 };
 
-exports.showZonesADM = async (req, res) => {
+exports.showZonesEdit = async (req, res) => {
   try {
     const zones = await Model.findZone();
     if (req.session.username && req.session.username.role === 'admin') {
@@ -404,16 +414,18 @@ exports.newZone = async (req, res) => {
   if (!req.session.username) {
     return res.redirect('/');
   }
+  
   try {
-
     if (!latestImage) {
       return renderErrorWithRedirect(req, res, 'Nenhuma imagem encontrada para o usuário.');
     }
 
-    res.render('logged/zonesAdd', {
+    res.render('logged/zonesForm', {
       imageId: latestImage.id,
       imagePath: imagePath,
-      zones: zones || []
+      zones: zones || [],
+      zone: null,
+      editingZoneId: null  // Definido como null para criação de nova zona
     });
   } catch (error) {
     console.error('Erro ao buscar dados da imagem:', error);
@@ -423,15 +435,14 @@ exports.newZone = async (req, res) => {
 
 exports.saveZone = async (req, res) => {
   const { zoneId, name, x1, x2, y1, y2, imageId } = req.body;
+  console.log(req.body)
   try {
       if (zoneId) {
-          // Atualizar zona existente
           await Model.alterZone({ id: zoneId, name, x1, x2, y1, y2, image_id: imageId });
-          res.redirect('/zonesadm');
+          res.redirect('/zonesEdit');
       } else {
-          // Criar nova zona
           await Model.insertZone({ name, x1, x2, y1, y2, image_id: imageId });
-          res.redirect('/zonesadm');
+          res.redirect('/zonesEdit');
       }
   } catch (err) {
       console.error(err);

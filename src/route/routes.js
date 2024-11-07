@@ -25,18 +25,25 @@ const upload = multer({ storage: storage });
 // Rotas
 router.get('/', controller.showLogin);
 router.post('/login', controller.login);
+
 router.get('/home', controller.showHome);
+router.get('/editAll', controller.showEditable);
+
 router.get('/produtos', controller.showProdutos);
-router.get('/produtosadm', controller.showProdutosADM);
+router.get('/produtosEdit', controller.showProdutosEdit);
+
 router.get('/zones', controller.showZones);
-router.get('/zonesadm', controller.showZonesADM);
+router.get('/zonesEdit', controller.showZonesEdit);
+
 router.get('/logout', controller.logout);
 router.get('/sobre', controller.showSobre);
+
 router.post('/pedir-produto', controller.pedirProduto);
 router.get('/status-robot', controller.statusRobot);
-router.post('/edit-produto/:produtoId', controller.editProduto);
+router.post('/editar-produto/:produtoId', controller.editProduto);
 router.post('/editar-zone/:zoneId', controller.editZone);
 router.post('/save-produto', controller.saveProduto);
+router.post('/save-produto/:produtoId', controller.saveProduto);
 router.post('/save-zone', controller.saveZone);
 router.post('/delete-produto', controller.delProduto);
 router.post('/delete-zone', controller.delZone);

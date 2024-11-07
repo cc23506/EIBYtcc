@@ -30,5 +30,5 @@ app.use('/', route); // Define as rotas para serem usadas no caminho raiz ('/')
 // Iniciar servidor
 const PORT = 8080;  // Define a porta na qual o servidor irá rodar
 app.listen(PORT, () => {
-  console.log(`\n\n\tServidor rodando na porta ${PORT}`); // Exibe mensagem no console informando que o servidor está rodando
+  console.log(`\n\n\tServidor rodando em: http://localhost:${PORT}`); // Exibe mensagem no console informando que o servidor está rodando
 });
