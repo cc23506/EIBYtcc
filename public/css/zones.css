@@ -1,0 +1,88 @@
+body {
+font-family: Arial, sans-serif;
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+background-color: #f7f7f7;
+}
+
+h1 {
+text-align: center;
+margin-top: 20px;
+color: #333;
+}
+
+#image-container {
+position: relative; /* Permite o posicionamento absoluto dos elementos filhos */
+display: flex;
+justify-content: center;
+align-items: center;
+padding: 20px;
+}
+
+#zone-image {
+max-width: 100%;
+height: auto;
+border-radius: 10px;
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.zone {
+position: absolute; /* Posiciona a zona sobre a imagem */
+border: 2px solid rgba(255, 0, 0, 0.7);
+color: rgba(255, 0, 0, 0.7);
+padding: 5px;
+background-color: rgba(255, 0, 0, 0.2);
+border-radius: 5px;
+font-weight: bold;
+transition: all 0.3s ease;
+}
+
+.zone:hover {
+background-color: rgba(255, 0, 0, 0.4);
+border-color: #f00;
+color: #fff;
+cursor: pointer;
+}
+
+.no-zones-message {
+text-align: center;
+font-size: 1.2rem;
+color: #777;
+}
+
+a {
+display: block;
+text-align: center;
+margin-top: 30px;
+color: #007bff;
+text-decoration: none;
+font-size: 1rem;
+}
+
+a:hover {
+text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+h1 {
+font-size: 1.5rem;
+}
+#zone-image {
+max-width: 90%;
+}
+.zone {
+font-size: 0.9rem;
+padding: 4px;
+}
+}
+
+@media (max-width: 480px) {
+h1 {
+font-size: 1.2rem;
+}
+.zone {
+font-size: 0.8rem;
+padding: 3px;
+}
+}
