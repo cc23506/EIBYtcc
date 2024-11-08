@@ -23,6 +23,8 @@ CREATE TABLE zone_image (
    `imagePath` varchar(255) NOT NULL,
    `uploadedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
    `user_id` int DEFAULT NULL,
+   `imageWidth` int NOT NULL,  -- Adicionando a largura da imagem
+   `imageHeight` int NOT NULL,  -- Adicionando a altura da imagem
    PRIMARY KEY (`id`),
    KEY `user_id` (`user_id`),
    CONSTRAINT `zone_image_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE

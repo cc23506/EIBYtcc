@@ -4,23 +4,30 @@ import threading
 
 app = Flask(__name__)
 
-# Função para rodar o controle do robô em segundo plano
-def run_robot(product):
-    control.detectar_objeto(product)
+def run_robot(product, x1, x2, y1, y2, imageWidth, imageHeight):
+    # Adicionar as variáveis imageWidth e imageHeight para processamento no controle do robô
+    control.calcular_rota(x1, x2, y1, y2)
+    control.detectar_objeto(product, imageWidth, imageHeight)  # Passando as dimensões da imagem
 
 @app.route('/api/control-robot', methods=['POST'])
 def control_robot():
     data = request.json
     product = data.get('product')
     requester = data.get('requester')
+    zone = data.get('zone')
+    imageWidth = data.get('imageWidth')  # Captura a largura da imagem
+    imageHeight = data.get('imageHeight')  # Captura a altura da imagem
 
-    if product:
-        # Inicia a detecção e o movimento do robô em uma nova thread
-        robot_thread = threading.Thread(target=run_robot, args=(product,))
+    if product and zone:
+        # Extraia as coordenadas da zona
+        x1, x2, y1, y2 = zone["x1"], zone["x2"], zone["y1"], zone["y2"]
+
+        # Inicia a detecção e o movimento do robô em uma nova thread com as coordenadas
+        robot_thread = threading.Thread(target=run_robot, args=(product, x1, x2, y1, y2, imageWidth, imageHeight))
         robot_thread.start()
-        return jsonify({"success": True, "message": f"Bucando: {product}\n\n Pedido por: {requester}"})
+        return jsonify({"success": True, "message": f"Buscando: {product} na zona definida.\n\nPedido por: {requester}"})
     
-    return jsonify({"success": False, "message": "Produto não encontrado."})
+    return jsonify({"success": False, "message": "Produto ou zona não encontrado."})
 
 @app.route('/api/stop-robot', methods=['POST'])
 def stop_robot():

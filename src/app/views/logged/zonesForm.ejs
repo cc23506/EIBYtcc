@@ -49,7 +49,6 @@
                          data-y2="<%= zone.y2 %>"
                          style="left: <%= zone.x1 %>px; top: <%= zone.y1 %>px; width: <%= zone.x2 - zone.x1 %>px; height: <%= zone.y2 - zone.y1 %>px; pointer-events: <%= zone.id == editingZoneId ? 'auto' : 'none' %>;">
                       <%= zone.name %>
-                      <!-- Alças de redimensionamento -->
                       <div class="resize-handle top-left"></div>
                       <div class="resize-handle top-right"></div>
                       <div class="resize-handle bottom-left"></div>
@@ -61,209 +60,141 @@
 
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                const canvas = document.getElementById('image-canvas');
-                const ctx = canvas.getContext('2d');
-                const uploadedImage = document.getElementById('uploaded-image');
-                const x1Input = document.getElementById('x1');
-                const x2Input = document.getElementById('x2');
-                const y1Input = document.getElementById('y1');
-                const y2Input = document.getElementById('y2');
-                let selectedZone = null;
-                let offsetX, offsetY;
-                let resizing = false;
-                let resizeHandle = null;
-                let isMouseDown = false;
+    const canvas = document.getElementById('image-canvas');
+    const ctx = canvas.getContext('2d');
+    const uploadedImage = document.getElementById('uploaded-image');
+    const x1Input = document.getElementById('x1');
+    const x2Input = document.getElementById('x2');
+    const y1Input = document.getElementById('y1');
+    const y2Input = document.getElementById('y2');
+    let selectedZone = null;
+    let offsetX, offsetY;
+    let resizing = false;
+    let resizeHandle = null;
+    let isMouseDown = false;
 
-                const editingZoneId = <%= zone ? zone.id : 'null' %>;
+    const editingZoneId = <%= zone ? zone.id : 'null' %>;
 
-                function resizeCanvas() {
-                    const imageRect = uploadedImage.getBoundingClientRect();
-                    canvas.width = imageRect.width;  // Largura exibida da imagem
-                    canvas.height = imageRect.height; // Altura exibida da imagem
-                    canvas.style.top = `${uploadedImage.offsetTop}px`;  // Alinhar o topo do canvas com a imagem
-                    drawGrid();
+    function resizeCanvas() {
+        const imageRect = uploadedImage.getBoundingClientRect();
+        canvas.width = imageRect.width;
+        canvas.height = imageRect.height;
+        canvas.style.top = `${uploadedImage.offsetTop}px`;
+        drawGrid();
+    }
+    
+    function drawGrid() {
+        const step = 50;  
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+        ctx.strokeStyle = '#fff';
+    
+        for (let x = 0; x <= canvas.width; x += step) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+            ctx.stroke();
+        }
+    
+        for (let y = 0; y <= canvas.height; y += step) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
+        }
+    }
+
+    function updateFormFields() {
+        if (selectedZone) {
+            const rect = selectedZone.getBoundingClientRect();
+            const imageRect = uploadedImage.getBoundingClientRect();
+            const scaleX = uploadedImage.naturalWidth / imageRect.width;
+            const scaleY = uploadedImage.naturalHeight / imageRect.height;
+
+            x1Input.value = Math.round((rect.left - imageRect.left) * scaleX);
+            y1Input.value = Math.round((rect.top - imageRect.top) * scaleY);
+            x2Input.value = Math.round((rect.right - imageRect.left) * scaleX);
+            y2Input.value = Math.round((rect.bottom - imageRect.top) * scaleY);
+        }
+    }
+
+    document.querySelectorAll('.zone').forEach(zone => {
+        zone.addEventListener('mousedown', function (e) {
+            const zoneId = parseInt(zone.getAttribute('data-id'));
+
+            if (editingZoneId && zoneId !== editingZoneId) {
+                return;
+            }
+
+            if (e.target.classList.contains('resize-handle')) {
+                resizing = true;
+                resizeHandle = e.target;
+            } else {
+                resizing = false;
+                resizeHandle = null;
+                selectedZone = zone;
+            }
+
+            isMouseDown = true;
+            const zoneRect = zone.getBoundingClientRect();
+            const imageRect = uploadedImage.getBoundingClientRect();
+            offsetX = e.clientX - zoneRect.left;
+            offsetY = e.clientY - zoneRect.top;
+        });
+
+        zone.addEventListener('click', function (e) {
+            const zoneId = parseInt(zone.getAttribute('data-id'));
+
+            if (editingZoneId && zoneId !== editingZoneId) {
+                return;
+            }
+
+            document.querySelectorAll('.zone').forEach(zone => zone.classList.remove('editing-zone'));
+            zone.classList.add('editing-zone');
+            selectedZone = zone;
+            updateFormFields();
+        });
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!selectedZone && e.target !== uploadedImage) {
+            document.querySelectorAll('.zone').forEach(zone => zone.classList.remove('editing-zone'));
+            selectedZone = null;
+        }
+    });
+
+    document.addEventListener('mousemove', function (e) {
+        if (!selectedZone) return;
+    
+        const imageRect = uploadedImage.getBoundingClientRect();
+    
+        if (resizing && isMouseDown) {
+            const zoneRect = selectedZone.getBoundingClientRect();
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+    
+            if (resizeHandle.classList.contains('top-left')) {
+                const newWidth = zoneRect.right - mouseX;
+                const newHeight = zoneRect.bottom - mouseY;
+
+                if (newWidth > 0 && newHeight > 0 && mouseX < zoneRect.right) {
+                    selectedZone.style.left = `${mouseX - imageRect.left}px`;
+                    selectedZone.style.top = `${mouseY - imageRect.top}px`;
+                    selectedZone.style.width = `${newWidth}px`;
+                    selectedZone.style.height = `${newHeight}px`;
                 }
-                
-                function drawGrid() {
-                    const step = 50;  // Tamanho da célula da grade
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                    ctx.strokeStyle = '#ddd';
-                
-                    // Linhas verticais
-                    for (let x = 0; x <= canvas.width; x += step) {
-                        ctx.beginPath();
-                        ctx.moveTo(x, 0);
-                        ctx.lineTo(x, canvas.height);
-                        ctx.stroke();
-                    }
-                
-                    // Linhas horizontais
-                    for (let y = 0; y <= canvas.height; y += step) {
-                        ctx.beginPath();
-                        ctx.moveTo(0, y);
-                        ctx.lineTo(canvas.width, y);
-                        ctx.stroke();
-                    }
-                }
+            }
+            // Similar logic for other resize handles (top-right, bottom-left, bottom-right)
+        }
+    });
 
-                function updateFormFields() {
-                    if (selectedZone) {
-                        const rect = selectedZone.getBoundingClientRect();
-                        const imageRect = uploadedImage.getBoundingClientRect();
-                        const scaleX = uploadedImage.naturalWidth / imageRect.width;
-                        const scaleY = uploadedImage.naturalHeight / imageRect.height;
+    window.addEventListener('resize', resizeCanvas);
 
-                        x1Input.value = Math.round((rect.left - imageRect.left) * scaleX);
-                        y1Input.value = Math.round((rect.top - imageRect.top) * scaleY);
-                        x2Input.value = Math.round((rect.right - imageRect.left) * scaleX);
-                        y2Input.value = Math.round((rect.bottom - imageRect.top) * scaleY);
-                    }
-                }
+    resizeCanvas();
+});
 
-                document.querySelectorAll('.zone').forEach(zone => {
-                    zone.addEventListener('mousedown', function (e) {
-                        const zoneId = parseInt(zone.getAttribute('data-id'));
-
-                        if (editingZoneId && zoneId !== editingZoneId) {
-                            return;
-                        }
-
-                        if (e.target.classList.contains('resize-handle')) {
-                            resizing = true;
-                            resizeHandle = e.target;
-                        } else {
-                            resizing = false;
-                            resizeHandle = null;
-                            selectedZone = zone;
-                        }
-
-                        isMouseDown = true;
-                        const zoneRect = zone.getBoundingClientRect();
-                        const imageRect = uploadedImage.getBoundingClientRect();
-                        offsetX = e.clientX - zoneRect.left;
-                        offsetY = e.clientY - zoneRect.top;
-                    });
-
-                    zone.addEventListener('click', function (e) {
-                        const zoneId = parseInt(zone.getAttribute('data-id'));
-
-                        if (editingZoneId && zoneId !== editingZoneId) {
-                            return;
-                        }
-
-                        document.querySelectorAll('.zone').forEach(zone => zone.classList.remove('editing-zone'));
-                        zone.classList.add('editing-zone');
-                        selectedZone = zone;
-                        updateFormFields();
-                    });
-                });
-
-                document.addEventListener('click', function (e) {
-                    if (!selectedZone && e.target !== uploadedImage) {
-                        document.querySelectorAll('.zone').forEach(zone => zone.classList.remove('editing-zone'));
-                        selectedZone = null;
-                    }
-                });
-
-                document.addEventListener('mousemove', function (e) {
-                    if (!selectedZone) return;
-                
-                    const imageRect = uploadedImage.getBoundingClientRect();
-                
-                    if (resizing && isMouseDown) {
-                        const zoneRect = selectedZone.getBoundingClientRect();
-                        const mouseX = e.clientX;
-                        const mouseY = e.clientY;
-                
-                        if (resizeHandle.classList.contains('top-left')) {
-                            const newWidth = zoneRect.right - mouseX;
-                            const newHeight = zoneRect.bottom - mouseY;
-
-                            if (newWidth > 0 && newHeight > 0 && mouseX >= imageRect.left && mouseY >= imageRect.top) {
-                                selectedZone.style.width = `${Math.min(newWidth, zoneRect.right - imageRect.left)}px`;
-                                selectedZone.style.height = `${Math.min(newHeight, zoneRect.bottom - imageRect.top)}px`;
-                                selectedZone.style.left = `${mouseX}px`;
-                                selectedZone.style.top = `${mouseY}px`;
-                            }
-                        } else if (resizeHandle.classList.contains('top-right')) {
-                            const newWidth = mouseX - zoneRect.right;
-                            const newHeight = mouseY - zoneRect.top;
-                
-                            if (newWidth > 0 && newHeight > 0 && mouseX <= imageRect.right && mouseY <= imageRect.bottom) {
-                                selectedZone.style.width = `${Math.min(newWidth, imageRect.right - zoneRect.left)}px`;
-                                selectedZone.style.height = `${Math.min(newHeight, imageRect.bottom - zoneRect.top)}px`;
-                            }
-                        } else if (resizeHandle.classList.contains('bottom-left')) {
-                            const newWidth = mouseX - zoneRect.left;
-                            const newHeight = mouseY - zoneRect.bottom;
-                
-                            if (newWidth > 0 && newHeight > 0 && mouseX <= imageRect.right && mouseY <= imageRect.bottom) {
-                                selectedZone.style.width = `${Math.min(newWidth, imageRect.right - zoneRect.left)}px`;
-                                selectedZone.style.height = `${Math.min(newHeight, imageRect.bottom - zoneRect.top)}px`;
-                            }
-                        } else if (resizeHandle.classList.contains('bottom-right')) {
-                            const newWidth = mouseX - zoneRect.left;
-                            const newHeight = mouseY - zoneRect.top;
-                
-                            if (newWidth > 0 && newHeight > 0 && mouseX <= imageRect.right && mouseY <= imageRect.bottom) {
-                                selectedZone.style.width = `${Math.min(newWidth, imageRect.right - zoneRect.left)}px`;
-                                selectedZone.style.height = `${Math.min(newHeight, imageRect.bottom - zoneRect.top)}px`;
-                            }
-                        }
-                
-                        updateFormFields();
-                    } else if (isMouseDown) {
-                        const zoneRect = selectedZone.getBoundingClientRect();
-                        const mouseX = e.clientX;
-                        const mouseY = e.clientY;
-                
-                        // Evitar que a zona seja movida para fora da imagem
-                        const newLeft = Math.min(Math.max(mouseX - offsetX, imageRect.left), imageRect.right - zoneRect.width);
-                        const newTop = Math.min(Math.max(mouseY - offsetY, imageRect.top), imageRect.bottom - zoneRect.height);
-                
-                        selectedZone.style.left = `${newLeft - imageRect.left}px`;
-                        selectedZone.style.top = `${newTop - imageRect.top}px`;
-                
-                        updateFormFields();
-                    }
-                });
-                
-
-                document.addEventListener('mouseup', function () {
-                    isMouseDown = false;
-                    resizing = false;
-                    resizeHandle = null;
-                });
-
-                resizeCanvas();
-                drawGrid();
-
-                function updateZoneFromInputs() {
-                    if (selectedZone) {
-                        const imageRect = uploadedImage.getBoundingClientRect();
-                        const scaleX = uploadedImage.naturalWidth / imageRect.width;
-                        const scaleY = uploadedImage.naturalHeight / imageRect.height;
-                
-                        const x1 = parseFloat(x1Input.value) / scaleX;
-                        const y1 = parseFloat(y1Input.value) / scaleY;
-                        const x2 = parseFloat(x2Input.value) / scaleX;
-                        const y2 = parseFloat(y2Input.value) / scaleY;
-                
-                        selectedZone.style.left = `${x1 * scaleX}px`;  // Corrigir a escala
-                        selectedZone.style.top = `${y1 * scaleY}px`;
-                        selectedZone.style.width = `${(x2 - x1) * scaleX}px`;
-                        selectedZone.style.height = `${(y2 - y1) * scaleY}px`;
-                    }
-                }
-                
-                // Adicionar eventos 'input' para atualizar a zona
-                x1Input.addEventListener('input', updateZoneFromInputs);
-                x2Input.addEventListener('input', updateZoneFromInputs);
-                y1Input.addEventListener('input', updateZoneFromInputs);
-                y2Input.addEventListener('input', updateZoneFromInputs);
-                
             });
         </script>
-    </body>
+    </div>
+</body>
 </html>

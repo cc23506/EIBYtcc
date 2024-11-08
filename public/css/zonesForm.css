@@ -21,7 +21,6 @@ h1 {
     color: #333;
 }
 
-/* Labels e inputs */
 label {
     display: block;
     margin-top: 10px;
@@ -64,10 +63,10 @@ button[type="button"]:hover {
     background-color: #5a6268;
 }
 
-/* Canvas e imagem */
 #image-container {
     margin-top: 20px;
     text-align: center;
+    position: relative;
 }
 
 .image-overlay-wrapper {
@@ -93,8 +92,8 @@ button[type="button"]:hover {
     margin: 0;
     padding: 0;
     border: none; /* Remover a borda para evitar deslocamento */
+    pointer-events: none; /* Para garantir que o canvas não bloqueie a interação */
 }
-
 
 /* Zonas desenhadas sobre a imagem */
 .zone {
@@ -146,10 +145,16 @@ button[type="button"]:hover {
     cursor: nwse-resize;
 }
 
-/* Grade no canvas */
 canvas {
     border: 1px solid #ddd;
     max-width: 100%;
     display: block;
     margin-top: 10px;
+}
+
+canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
 }

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adicionar Nova Imagem</title>
+  <link rel="stylesheet" href="/css/planForm.css">
+</head>
+<body>
+
+  <div class="container">
+    <h1>Adicionar Nova Imagem do Mapa</h1>
+
+    <form action="/upload-map" method="POST" enctype="multipart/form-data">
+      <div>
+        <label for="image">Escolha a imagem do mapa:</label>
+        <input type="file" id="image" name="image" accept="image/png, image/jpeg, image/svg+xml" required>
+      </div>
+      <input type="hidden" name="user_id" value="<%= user %>">
+      <div class="btns">
+        <button type="submit">Upload</button>
+        <button onclick="javascript:history.back()">Voltar</button>
+      </div>
+    </form>
+
+  </div>
+
+</body>
+</html>

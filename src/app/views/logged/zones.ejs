@@ -3,29 +3,72 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <link rel="stylesheet" href="/css/zones.css">
-
   <title>Visualizar Zonas</title>
 </head>
 <body>
   <h1>Zonas disponíveis</h1>
 
   <div id="image-container">
-    <!-- Exibe a imagem mais recente -->
-    <img src="<%= imagePath %>" alt="Imagem da Zona" id="zone-image">
-
-    <% if (zones.length > 0) { %>
-      <% zones.forEach(zone => { %>
-        <div class="zone" style="left: <%= zone.x1 %>px; top: <%= zone.y1 %>px; width: <%= zone.x2 - zone.x1 %>px; height: <%= zone.y2 - zone.y1 %>px;">
-          <%= zone.name %>
-        </div>
-      <% }) %>
-    <% } else { %>
+    <% if (zones.length === 0) { %>
       <p class="no-zones-message">Nenhuma zona disponível para esta imagem.</p>
     <% } %>
+
+    <!-- Imagem da zona -->
+    <img src="<%= imagePath %>" alt="Imagem da Zona" id="zone-image">
+    
+    <!-- Canvas para a grade -->
+    <canvas id="grid-canvas"></canvas>
+
+    <% zones.forEach(zone => { %>
+      <div class="zone" style="left: <%= zone.x1 %>px; top: <%= zone.y1 %>px; width: <%= zone.x2 - zone.x1 %>px; height: <%= zone.y2 - zone.y1 %>px;">
+        <%= zone.name %>
+      </div>
+    <% }) %>
   </div>
 
-  <a href="/">Voltar</a>
+  <button onclick="javascript:history.back()">Voltar</button>
+
+  <script>
+    // Definindo o canvas para desenhar a grade
+    const canvas = document.getElementById('grid-canvas');
+    const image = document.getElementById('zone-image');
+    
+    // Configurando o canvas com as mesmas dimensões da imagem
+    function setupCanvas() {
+      canvas.width = image.clientWidth;
+      canvas.height = image.clientHeight;
+      canvas.style.position = "absolute";
+      canvas.style.left = image.offsetLeft + "px";
+      canvas.style.top = image.offsetTop + "px";
+      drawGrid();
+    }
+
+    // Função para desenhar a grade
+    function drawGrid() {
+      const ctx = canvas.getContext("2d");
+      const gridSize = 50; // Tamanho das células da grade
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = "rgb(255, 255, 255)"; // Cor da grade
+
+      for (let x = 0; x < canvas.width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+
+      for (let y = 0; y < canvas.height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+    }
+
+    // Garantir que a grade se redimensione junto com a imagem
+    window.addEventListener("resize", setupCanvas);
+    window.addEventListener("load", setupCanvas);
+  </script>
 </body>
 </html>
