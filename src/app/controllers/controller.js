@@ -1,4 +1,5 @@
 const Model = require('../models/model.js');
+const sizeOf = require('image-size');
 const axios = require('axios');
 const fs = require('fs');
 
@@ -50,17 +51,32 @@ exports.pedirProduto = async (req, res) => {
   const produtoId = req.body.produtoId;
   const produto = await Model.findProductById(produtoId);
   const zone = await Model.findZoneByProduct(produtoId);
+  
+  const zoneImage = await Model.findImageById(zone.image_id);
+  const imageWidth = zoneImage.imageWidth;
+  const imageHeight = zoneImage.imageHeight;
 
   try {
-
     if (!produto) {
       return res.status(404).send('Produto não encontrado no banco de dados.');
     }
 
+    const scaleX = imageWidth / 100;
+    const scaleY = imageHeight / 100;
+
+    const scaledZone = {
+      x1: zone.x1 * scaleX,
+      x2: zone.x2 * scaleX,
+      y1: zone.y1 * scaleY,
+      y2: zone.y2 * scaleY
+    };
+
     const response = await axios.post('http://10.0.2.15:5000/api/control-robot', {
       requester: req.session.username,
       product: produto.name,
-      zone: zone
+      zone: scaledZone,
+      imageHeight: imageHeight,
+      imageWidth: imageWidth
     });
 
     if (response.data.success) {
@@ -152,16 +168,14 @@ exports.newProduto = async (req, res) => {
   }
 
   try {
-    // Busca o produto e a zona associada, se houver
-    const produtoId = req.params.id; // Pode ser undefined se estiver criando um novo produto
+    const produtoId = req.params.id;
     const produto = produtoId ? await Model.findProductById(produtoId) : null;
 
-    // Busque todas as zonas disponíveis
     const zonas = await Model.findZone();
 
     res.render('logged/produtosForm', {
       produto,
-      zonas  // Certifique-se de passar a variável 'zonas'
+      zonas
     });
   } catch (error) {
     console.error(error);
@@ -298,7 +312,6 @@ exports.delZone = async (req, res) => {
 
     const zones = await Model.findZone();
 
-    // Busca a imagem mais recente do usuário e suas zonas
     const latestImage = await Model.findLatestImageByUser(userId);
     res.render('logged/zonesView', {
       username: req.session.username.username,
@@ -453,15 +466,13 @@ function renderErrorWithRedirect(req, res, errorMessage) {
   });
 }
 
-exports.newMap = async (req, res) => {
+exports.newPlan = async (req, res) => {
   try {
-    // Verifica se o usuário está autenticado
     if (!req.session.username || !req.session.username.id) {
-      return res.redirect('/'); // Ou para a página de login, se necessário
+      return res.redirect('/');
     }
-    const user = req.session.username.id // Obtendo o ID do usuário da sessão
-    // Passa o ID do usuário para a view
-    res.render('logged/mapZones', {
+    const user = req.session.username.id
+    res.render('logged/planForm', {
       user: user
     });
   } catch (error) {
@@ -471,25 +482,26 @@ exports.newMap = async (req, res) => {
 };
 
 exports.uploadMap = async (req, res) => {
+  console.log(req.file);
   try {
     if (!req.file) {
       return res.status(400).send('Nenhuma imagem foi enviada');
     }
 
-    const imagePath = `/uploads/${req.file.filename}`;  // Caminho relativo público
+    const imagePath = `/uploads/${req.file.filename}`;
+    console.log(imagePath);
+
+    const dimensions = sizeOf(imagePath);
+    const imageWidth = dimensions.width;
+    const imageHeight = dimensions.height;
+
     const userId = req.session.username.id;
 
-    // Apaga todas as zonas e a imagem anterior do usuário
     await Model.deleteUserZonesAndImage(userId);
 
-    // Insere o caminho da nova imagem e o ID do usuário no banco de dados
-    await Model.insertZoneImage(imagePath, userId);
+    await Model.insertZoneImage(imagePath, imageWidth, imageHeight, userId);
 
-    // Constrói a URL completa para acessar a imagem a partir de qualquer lugar
-    const fullImageUrl = `${req.protocol}://${req.get('host')}${imagePath}`;
-
-    // Retorna a URL completa da imagem pública
-    res.redirect('/zones'); // Ou responda com JSON, se preferir
+    res.redirect('/zones');
   } catch (err) {
     console.error(err);
     res.status(500).send('Erro ao fazer upload da imagem');

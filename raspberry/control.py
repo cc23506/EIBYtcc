@@ -38,6 +38,28 @@ status_robot = {
     "product": None
 }
 
+def calcular_rota(x1, x2, y1, y2):
+    # Aqui você pode ajustar o algoritmo de movimentação
+    start = (0, 0)  # Posição inicial do robô
+    destino = (x1, y1)  # Apenas um exemplo, você pode usar coordenadas de destino (x2, y2) ou algum outro ponto relevante
+    path = a_star(start, destino)
+
+    for step in path:
+        if step[0] > start[0]:
+            move_robot("direita")
+        elif step[0] < start[0]:
+            move_robot("esquerda")
+        elif step[1] > start[1]:
+            move_robot("frente")
+        elif step[1] < start[1]:
+            move_robot("tras")
+        start = step
+        time.sleep(0.5)
+    
+    move_robot("parar")
+    print(f"Rota concluída até {destino}")
+
+
 def move_robot(direction):
     status_robot["status"] = direction
     if direction == "frente":

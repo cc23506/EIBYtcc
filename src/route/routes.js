@@ -7,20 +7,21 @@ const fs = require('fs');
 
 const uploadDir = path.join(__dirname, '../../public/uploads/');
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true }); // Cria a pasta se não existir
+  fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, uploadDir); // Define o diretório de upload
+    cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname)); // Gera um nome de arquivo único
+    cb(null, uniqueSuffix + path.extname(file.originalname));
   }
 });
 
 const upload = multer({ storage: storage });
+console.log(uploadDir);
 
 router.get('/', controller.showLogin);
 router.post('/login', controller.login);
@@ -42,7 +43,7 @@ router.post('/delete-produto', controller.delProduto);
 
 router.get('/zonesEdit', controller.showZonesEdit);
 router.post('/new-zone', controller.newZone);
-router.post('/new-map', controller.newMap);
+router.post('/new-plan', controller.newPlan);
 router.post('/upload-map', upload.single('image'), controller.uploadMap);
 
 router.post('/editar-zone/:zoneId', controller.editZone);

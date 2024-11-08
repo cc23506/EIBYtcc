@@ -122,10 +122,10 @@ async function findZoneByProduct(productId) {
   return zone[0] || null;
 }
 
-async function insertZoneImage(imagePath, userId){
+async function insertZoneImage(imagePath, imageWidth, imageHeight, userId){
   const pool = await db.connect();
-  const query = 'INSERT INTO zone_image (imagePath, user_id) VALUES (?, ?)';
-  const [result] = await pool.execute(query, [imagePath, userId]);
+  const query = 'INSERT INTO zone_image (imagePath, imageWidth, imageHeight, user_id) values (?, ?, ?, ?)';
+  const [result] = await pool.execute(query, [imagePath, imageWidth, imageHeight, userId]);
   return result;
 };
 
