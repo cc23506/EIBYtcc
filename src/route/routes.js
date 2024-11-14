@@ -22,7 +22,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 console.log(uploadDir);
-
+''
 router.get('/', controller.showLogin);
 router.post('/login', controller.login);
 router.get('/home', controller.showHome);
