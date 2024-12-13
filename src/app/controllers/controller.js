@@ -70,7 +70,7 @@ exports.pedirProduto = async (req, res) => {
       y2: zone.y2 * scaleY
     };
 
-    const response = await axios.post(`http://192.168.0.8:5000/api/control-robot`, {
+    const response = await axios.post(`http://100.112.13.108:5000/api/control-robot`, {
       requester: req.session.username,
       product: produto.name,
       zone: scaledZone,
@@ -102,7 +102,7 @@ exports.pedirProduto = async (req, res) => {
 
 exports.statusRobot = async (req, res) => {
   try {
-    const statusResponse = await axios.get('http://192.168.0.8:5000/api/status-robot');
+    const statusResponse = await axios.get('http://100.112.13.108:5000/api/status-robot');
 
     if (statusResponse.data.success) {
       res.json({
