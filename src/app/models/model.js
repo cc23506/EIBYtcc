@@ -14,7 +14,7 @@ async function findProduct() {
 
 async function findProductById(productId) {
   const pool = await db.connect();
-  const [rows] = await pođol.execute(`
+  const [rows] = await pool.execute(`
     SELECT *FROM products WHERE id = ?`, [productId]
   );
   return rows[0];
@@ -32,6 +32,12 @@ async function insertProductZone(productId, zoneId) {
   const pool = await db.connect();
 
   await pool.execute('INSERT INTO product_zone (product_id, zone_id) VALUES (?, ?)', [productId, zoneId]);
+}
+
+async function alterProductZone(productId, zoneId) {
+  const pool = await db.connect();
+
+  await pool.execute('UPDATE product_zone SET zone_id = ? WHERE product_id = ?', [productId, zoneId]);
 }
 
 async function alterProduct(productId, newName, newDescription) {
@@ -181,9 +187,35 @@ async function findImageByZoneId(zoneId) {
   return rows.length ? rows[0] : null;  // Retorna a imagem se encontrada, ou null se não houver
 }
 
+async function findImageById(zoneId) {
+  const pool = await db.connect();
+  const query = `
+    SELECT 
+      id, 
+      imagePath, 
+      uploadedAt, 
+      imageWidth, 
+      imageHeight, 
+      user_id 
+    FROM 
+      zone_image 
+    WHERE 
+      id = ? 
+    LIMIT 1
+  `;
+
+  try {
+    const [rows] = await pool.execute(query, [zoneId]);
+    return rows.length ? rows[0] : null;
+  } catch (error) {
+    console.error('Erro ao buscar imagem por ID:', error);
+    throw error;
+  }
+}
 
 module.exports = {
   findImageByZoneId,
+  findImageById,
   findUserByUsername,
   findProduct,
   findProductById,
@@ -206,4 +238,5 @@ module.exports = {
   deleteZone,
   deleteZonesByImageId,
   deleteUserZonesAndImage,
+  alterProductZone
 };

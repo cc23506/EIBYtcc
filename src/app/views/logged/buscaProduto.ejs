@@ -4,31 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Status do produto</title>
-    <link rel="stylesheet" href="/css/produtos.css">
+    <link rel="stylesheet" href="/css/buscaProduto.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Produto Pedido</h1>
+    <div class="center">
+        <div class="container">
+            <h1>Produto Pedido</h1>
 
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Nome</th>
-                <th>Zona</th>
-                <th>Descrição</th>
-            </tr>
-            <tr>
-                <td><%= produto ? produto.id : 'ID não disponível' %></td>
-                <td><%= produto ? produto.name : 'Nome não disponível' %></td>
-                <td><%= zone ? zone.id : 'Zona não disponível' %></td>
-                <td><%= produto ? produto.description : 'Descrição não disponível' %></td>
-            </tr>
-        </table>
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Zona</th>
+                    <th>Descrição</th>
+                </tr>
+                <tr>
+                    <td><%= produto ? produto.id : 'ID não disponível' %></td>
+                    <td><%= produto ? produto.name : 'Nome não disponível' %></td>
+                    <td><%= zone ? zone.id : 'Zona não disponível' %></td>
+                    <td><%= produto ? produto.description : 'Descrição não disponível' %></td>
+                </tr>
+            </table>
 
-        <h2>Status do Robô:</h2>
-        <p id="status">O robô está iniciando a busca...</p>
+            <h2>Status do Robô:</h2>
+            <p id="status">O robô está iniciando a busca...</p>
 
-        <button type="button" onclick="window.location.href='/';">Início</button>
+            <button type="button" onclick="window.location.href='/';">Início</button>
+        </div>
     </div>
 
     <script>

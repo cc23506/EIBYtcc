@@ -24,11 +24,22 @@
             <label for="description">Descrição:</label>
             <textarea id="description" name="description" rows="4" required><%= produto ? produto.description : '' %></textarea>
             
+            <label for="zonaId">Zona:</label>
+            <select id="zonaId" name="zonaId" required>
+                <% if (produto && produto.zona) { %>
+                    <option value="<%= produto.zona.id %>" selected><%= produto.zona.name %></option>
+                <% } %>
+
+                <% zonas.forEach(function(zona) { %>
+                    <% if (!produto || !produto.zona || produto.zona.id !== zona.id) { %>
+                        <option value="<%= zona.id %>"><%= zona.name %></option>
+                    <% } %>
+                <% }) %>
+            </select>
+
             <button type="submit"><%= produto ? 'Salvar Alterações' : 'Adicionar Produto' %></button>
             <button type="button" class="cancel-button" onclick="javascript:history.back()">Cancelar</button>
         </form>
     </div>
-    
-    
 </body>
 </html>

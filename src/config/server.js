@@ -19,6 +19,7 @@ app.use(session({
 app.set('view engine', 'ejs'); // Define o EJS como a engine de templates usada para renderizar as views
 app.set('views', path.join(__dirname, '../app/views')); // Define o diretório onde os arquivos de view estão localizados (ajuste o caminho se necessário)
 app.use(express.static(path.join(__dirname, '../../public'))); // Define o diretório para arquivos estáticos, como CSS e imagens
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 app.use(express.urlencoded({ extended: true })); // Middleware para lidar com dados de formulários enviados via POST (formulários URL-encoded)
 app.use(express.json());
 

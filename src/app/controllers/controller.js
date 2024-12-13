@@ -1,7 +1,7 @@
 const Model = require('../models/model.js');
 const sizeOf = require('image-size');
 const axios = require('axios');
-const fs = require('fs');
+const path = require('path');
 
 exports.showLogin = (req, res) => {
   if (req.session.username){
@@ -51,7 +51,6 @@ exports.pedirProduto = async (req, res) => {
   const produtoId = req.body.produtoId;
   const produto = await Model.findProductById(produtoId);
   const zone = await Model.findZoneByProduct(produtoId);
-  
   const zoneImage = await Model.findImageById(zone.image_id);
   const imageWidth = zoneImage.imageWidth;
   const imageHeight = zoneImage.imageHeight;
@@ -71,7 +70,7 @@ exports.pedirProduto = async (req, res) => {
       y2: zone.y2 * scaleY
     };
 
-    const response = await axios.post('http://10.0.2.15:5000/api/control-robot', {
+    const response = await axios.post(`http://192.168.0.8:5000/api/control-robot`, {
       requester: req.session.username,
       product: produto.name,
       zone: scaledZone,
@@ -91,19 +90,19 @@ exports.pedirProduto = async (req, res) => {
 
   } catch (error) {
     if (error.code === 'ECONNABORTED') {
-      res.status(500).send('O robô demorou muito para responder.');
+      res.status(500).send('O servidor demorou muito para responder.');
     } else if (error.response) {
-      res.status(error.response.status).send(`Erro na comunicação com o robô: ${error.response.data.message}`);
+      res.status(error.response.status).send(`Erro na comunicação com o servidor: ${error.response.data.message}`);
     } else {
       console.error(error);
-      res.status(500).send('Erro ao comunicar com o robô.');
+      res.status(500).send('Erro ao comunicar com o servidor.');
     }
   }
 };
 
 exports.statusRobot = async (req, res) => {
   try {
-    const statusResponse = await axios.get('http://192.168.0.110:5000/api/status-robot');
+    const statusResponse = await axios.get('http://192.168.0.8:5000/api/status-robot');
 
     if (statusResponse.data.success) {
       res.json({
@@ -113,7 +112,7 @@ exports.statusRobot = async (req, res) => {
     } else {
       res.json({
         success: false,
-        message: 'Erro ao obter o status do robô.'
+        message: 'Erro com o robô.'
       });
     }
   } catch (error) {
@@ -139,20 +138,21 @@ exports.delProduto = async (req, res) => {
 };
 
 exports.saveProduto = async (req, res) => {
-  const { produtoId, name, description, zone } = req.body;
+  const { produtoId, name, description, zonaId } = req.body;
   try {
     let productId;
     if (produtoId) {
-      await Model.alterProduct(produtoId, name, description);
+      await Model.alterProduct(produtoId, name, description, zonaId);
+      await Model.alterProductZone(produtoId, zonaId);
       productId = produtoId;
     } else {
-      const result = await Model.insertProduct(name, description);
+      const result = await Model.insertProduct(name, description, zonaId);
       productId = result.insertId;
     }
 
     await Model.deleteProductZones(productId);
-    if (zone) {
-      await Model.insertProductZone(productId, zone);
+    if (zonaId) {
+      await Model.insertProductZone(productId, zonaId);
     }
 
     res.redirect('/produtos');
@@ -226,8 +226,8 @@ exports.showProdutosEdit = async (req, res) => {
     const produtos = await Model.findProduct();
 
     const produtosComZonas = await Promise.all(produtos.map(async (produto) => {
-      const zona = await Model.findZoneByProduct(produto.id);
-      return { ...produto, zona };  // Associe a zona ao produto
+      const zona = await Model.findZoneByProduct(produto.id) || {}; // Garante que não seja undefined
+      return { ...produto, zona };  // Associa a zona ao produto, mesmo que seja um objeto vazio
     }));
 
     if (req.session.username.role === 'admin') {
@@ -255,20 +255,21 @@ exports.showProdutos = async (req, res) => {
     const produtos = await Model.findProduct();
 
     const produtosComZonas = await Promise.all(produtos.map(async (produto) => {
-      const zona = await Model.findZoneByProduct(produto.id);
-      return { ...produto, zona };
+      const zona = await Model.findZoneByProduct(produto.id) || {}; // Garantindo que 'zona' será sempre um objeto
+      return { ...produto, zona }; // Passando 'zona' junto com o 'produto'
     }));
 
     res.render('logged/produtos', {
       username: req.session.username,
       role: req.session.role,
-      produtos: produtosComZonas 
+      produtos: produtosComZonas
     });
   } catch (error) {
     console.error(error);
     res.status(500).send('Erro ao buscar produtos');
   }
 };
+
 
 exports.showHome = async (req, res) => {
   if (!req.session.username) {
@@ -461,7 +462,7 @@ exports.deleteZone = (req, res) => {
 function renderErrorWithRedirect(req, res, errorMessage) {
   res.render('errorPage', {
     message: errorMessage,
-    redirectUrl: '/new-map',
+    redirectUrl: '/new-plan',
     errorRedirect: true
   });
 }
@@ -488,19 +489,28 @@ exports.uploadMap = async (req, res) => {
       return res.status(400).send('Nenhuma imagem foi enviada');
     }
 
+    // Caminho público para o acesso via URL
     const imagePath = `/uploads/${req.file.filename}`;
     console.log(imagePath);
 
-    const dimensions = sizeOf(imagePath);
+    // Caminho absoluto no sistema de arquivos
+    const absoluteImagePath = path.join(__dirname, '../../../public/', imagePath);
+
+    // Obter dimensões da imagem
+    const dimensions = sizeOf(absoluteImagePath);
     const imageWidth = dimensions.width;
     const imageHeight = dimensions.height;
 
+    // Obter o ID do usuário
     const userId = req.session.username.id;
 
+    // Remover zonas e imagens antigas relacionadas ao usuário
     await Model.deleteUserZonesAndImage(userId);
 
+    // Inserir a nova imagem e suas dimensões no banco
     await Model.insertZoneImage(imagePath, imageWidth, imageHeight, userId);
 
+    // Redirecionar para a página de zonas
     res.redirect('/zones');
   } catch (err) {
     console.error(err);
