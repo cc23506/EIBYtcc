@@ -1,5 +1,6 @@
+# Simulação do código Flask
 from flask import Flask, request, jsonify
-import control  # Importar o arquivo de controle do robô
+import control  # Importar o arquivo de controle do robô simulado
 import threading
 
 app = Flask(__name__)
@@ -25,7 +26,7 @@ def control_robot():
         # Inicia a detecção e o movimento do robô em uma nova thread com as coordenadas
         robot_thread = threading.Thread(target=run_robot, args=(product, x1, x2, y1, y2, imageWidth, imageHeight))
         robot_thread.start()
-        return jsonify({"success": True, "message": f"Buscando: {product} na zona definida.\n\nPedido por: {requester}"})
+        return jsonify({"success": True, "message": f"Simulação: Buscando '{product}' na zona definida.\n\nPedido por: {requester}"})
     
     return jsonify({"success": False, "message": "Produto ou zona não encontrado."})
 
@@ -33,7 +34,7 @@ def control_robot():
 def stop_robot():
     # Função para parar o robô
     control.parar_robot()
-    return jsonify({"success": True, "message": "Robô parado."})
+    return jsonify({"success": True, "message": "Simulação: Robô parado."})
 
 @app.route('/api/status-robot', methods=['GET'])
 def status_robot():

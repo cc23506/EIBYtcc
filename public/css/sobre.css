@@ -40,7 +40,7 @@ text-decoration: underline;
 }
 
 .container {
-padding: 10rem 2rem 2rem; /* Aumentei o padding superior para 10rem */
+padding: 5rem 2rem 2rem; /* Aumentei o padding superior para 10rem */
 max-width: 1200px;
 margin: 0 auto;
 }
@@ -78,7 +78,6 @@ background-color: #333;
 color: #fff;
 text-align: center;
 padding: 1rem;
-position: fixed;
 width: 100%;
 bottom: 0;
 }

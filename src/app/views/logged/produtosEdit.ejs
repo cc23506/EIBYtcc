@@ -36,6 +36,7 @@
           <h3><%= produto.id %> - <%= produto.name %></h3>
           <h3>Descrição do produto abaixo:</h3>
           <p>( <%= produto.description %> )</p>
+          <p><%= produto.zona && produto.zona.name ? produto.zona.name : 'Nenhuma zona disponível' %></p>
           <nav id="displaybtns">
             <form action="/editar-produto/<%= produto.id %>" method="POST">
               <input type="hidden" name="produtoId" value="<%= produto.id %>">

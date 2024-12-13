@@ -4,7 +4,6 @@
   "ignore": ["node_modules"],
   "exec": "node src/config/server.js",
   "events": {
-    "restart": "clear"
+    "restart": "node -e \"process.stdout.write('\\033c')\""
   }
-
 }

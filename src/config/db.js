@@ -5,9 +5,9 @@ const mysql = require('mysql2/promise');
 const dbConfig = {
   host: 'autorack.proxy.rlwy.net',  // Endereço do servidor MySQL fornecido pela Railway
   user: 'root',                     // Nome de usuário
-  password: 'mYtiExCPxbxyFRQGuZJxDnKmBThZuDPR', // Senha fornecida
+  password: 'WiWMbhUHuHpTnUsRmzQpEEWnZcQBFhaF', // Senha fornecida
   database: 'railway',         // Substitua por seu banco de dados correto
-  port: 14296,                      // Porta do MySQL
+  port: 11792,                      // Porta do MySQL
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0

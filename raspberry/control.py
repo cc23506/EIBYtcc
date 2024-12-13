@@ -1,37 +1,53 @@
 import time
 import cv2
 import numpy as np
-import RPi.GPIO as GPIO
+import tensorflow as tf
 
-# Configurações GPIO
-GPIO.setmode(GPIO.BCM)
+def load_model(model_path):
+    with tf.compat.v1.gfile.GFile(model_path, 'rb') as f:
+        graph_def = tf.compat.v1.GraphDef()
+        graph_def.ParseFromString(f.read())
+    with tf.Graph().as_default() as graph:
+        tf.import_graph_def(graph_def, name='')
+    return graph
 
-# Configuração dos pinos da Ponte H (motores DC)
-GPIO.setup(17, GPIO.OUT)  # Motor esquerdo IN1
-GPIO.setup(18, GPIO.OUT)  # Motor esquerdo IN2
-GPIO.setup(23, GPIO.OUT)  # Motor direito IN3
-GPIO.setup(24, GPIO.OUT)  # Motor direito I4N
+def detect_objects(image, sess, tensors):
+    input_tensor = np.expand_dims(image, axis=0)
+    output_dict = sess.run(tensors, feed_dict={tensors['image_tensor']: input_tensor})
+    return output_dict
 
-# Configuração do servo motor
-servo_pin = 22
-GPIO.setup(servo_pin, GPIO.OUT)
-servo = GPIO.PWM(servo_pin, 50)  # 50Hz para PWM
-servo.start(0)
+def draw_boxes(image, boxes, scores, classes):
+    height, width, _ = image.shape
+    bboxes = []
+    for box in boxes:
+        ymin, xmin, ymax, xmax = box
+        bboxes.append([int(xmin * width), int(ymin * height), int((xmax - xmin) * width), int((ymax - ymin) * height)])
 
-# Configuração dos servos do braço robótico
-servo_arm_pins = [5, 6, 13, 19]
-servo_arms = []
-for pin in servo_arm_pins:
-    GPIO.setup(pin, GPIO.OUT)
-    arm_servo = GPIO.PWM(pin, 50)
-    servo_arms.append(arm_servo)
-    arm_servo.start(0)
+    indices = cv2.dnn.NMSBoxes(
+        bboxes,
+        scores.tolist(),
+        score_threshold=0.6,
+        nms_threshold=0.4
+    )
+    
+    if isinstance(indices, np.ndarray) and indices.size > 0:
+        for idx in indices.flatten():
+            i = idx
+            class_id = int(classes[i])
+            
+            if class_id in [1, 77, 44]:
+                xmin, ymin, width, height = bboxes[i]
+                xmax, ymax = xmin + width, ymin + height
+                cv2.rectangle(image, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
+                label = ""
+                if class_id == 1:
+                    label = f"Person: {int(scores[i] * 100)}%"
+                elif class_id == 77:
+                    label = f"Cell Phone: {int(scores[i] * 100)}%"
+                elif class_id == 44:
+                    label = f"Bottle: {int(scores[i] * 100)}%"
+                cv2.putText(image, label, (xmin, ymin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
 
-# Sensor Ultrassônico HC-SR04
-TRIG = 27
-ECHO = 22
-GPIO.setup(TRIG, GPIO.OUT)
-GPIO.setup(ECHO, GPIO.IN)
 
 status_robot = {
     "status": "parado",
@@ -39,190 +55,82 @@ status_robot = {
 }
 
 def calcular_rota(x1, x2, y1, y2):
-    # Aqui você pode ajustar o algoritmo de movimentação
-    start = (0, 0)  # Posição inicial do robô
-    destino = (x1, y1)  # Apenas um exemplo, você pode usar coordenadas de destino (x2, y2) ou algum outro ponto relevante
-    path = a_star(start, destino)
-
-    for step in path:
-        if step[0] > start[0]:
-            move_robot("direita")
-        elif step[0] < start[0]:
-            move_robot("esquerda")
-        elif step[1] > start[1]:
-            move_robot("frente")
-        elif step[1] < start[1]:
-            move_robot("tras")
-        start = step
-        time.sleep(0.5)
+    status_robot["status"] = "calculando rota"
+    print(f"Simulação: Calculando rota para a zona ({x1}, {y1}) até ({x2}, {y2}).")
+    time.sleep(1)
+    print("Simulação: Cálculo da rota concluída.")
+    medir_distancia()
     
-    move_robot("parar")
-    print(f"Rota concluída até {destino}")
 
 
 def move_robot(direction):
+    print(f"Simulação: Movendo o robô para {direction}.")
     status_robot["status"] = direction
-    if direction == "frente":
-        GPIO.output(17, GPIO.HIGH)
-        GPIO.output(18, GPIO.LOW)
-        GPIO.output(23, GPIO.HIGH)
-        GPIO.output(24, GPIO.LOW)
-    elif direction == "tras":
-        GPIO.output(17, GPIO.LOW)
-        GPIO.output(18, GPIO.HIGH)
-        GPIO.output(23, GPIO.LOW)
-        GPIO.output(24, GPIO.HIGH)
-    elif direction == "esquerda":
-        GPIO.output(17, GPIO.LOW)
-        GPIO.output(18, GPIO.HIGH)
-        GPIO.output(23, GPIO.HIGH)
-        GPIO.output(24, GPIO.LOW)
-    elif direction == "direita":
-        GPIO.output(17, GPIO.HIGH)
-        GPIO.output(18, GPIO.LOW)
-        GPIO.output(23, GPIO.LOW)
-        GPIO.output(24, GPIO.HIGH)
-    elif direction == "parar":
-        GPIO.output(17, GPIO.LOW)
-        GPIO.output(18, GPIO.LOW)
-        GPIO.output(23, GPIO.LOW)
-        GPIO.output(24, GPIO.LOW)
-        status_robot["status"] = "parado"
+    time.sleep(0.5)
 
 def medir_distancia():
-    GPIO.output(TRIG, True)
-    time.sleep(0.00001)
-    GPIO.output(TRIG, False)
-
-    # Simula a distância
-    distance = np.random.uniform(5.0, 200.0)  # Gera uma distância aleatória entre 5 e 200 cm
+    status_robot["status"] = "medindo distância"
+    distance = np.random.uniform(5.0, 200.0)
+    print(f"Simulação: Medindo distancia: {distance:.2f} cm")
+    status_robot["status"] = "Andando"
     return round(distance, 2)
 
-def girar_servo_sensor(angulo):
-    duty = 2 + (angulo / 18)
-    servo.ChangeDutyCycle(duty)
-    time.sleep(0.5)
-    servo.ChangeDutyCycle(0)
 
-def mover_braco(angulos):
-    for i, angulo in enumerate(angulos):
-        duty_cycle = 2 + (angulo / 18)
-        servo_arms[i].ChangeDutyCycle(duty_cycle)
-        time.sleep(0.5)
-        servo_arms[i].ChangeDutyCycle(0)
-
-def parar_robot():
-    move_robot("parar")
-    status_robot["status"] = "parado"
-    status_robot["product"] = None
-
-def detectar_objeto(product_name):
-    net = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
-    layer_names = net.getLayerNames()
-    output_layers = [layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
+def detectar_objeto(product_name, imageWidth, imageHeight):
     cap = cv2.VideoCapture(0)
-
-    status_robot["status"] = "buscando"
+    if not cap.isOpened():
+        print("Erro ao abrir a câmera")
+        return
+    
+    status_robot["status"] = "Detectando objeto"
     status_robot["product"] = product_name
 
-    while cap.isOpened():
-        ret, frame = cap.read()
-        height, width, channels = frame.shape
-        blob = cv2.dnn.blobFromImage(frame, 0.00392, (416, 416), (0, 0, 0), True, crop=False)
-        net.setInput(blob)
-        outs = net.forward(output_layers)
+    model_path = "raspberry/ssd_mobilenet_v1_coco_2018_01_28/frozen_inference_graph.pb"
+    graph = load_model(model_path)
 
-        for out in outs:
-            for detection in out:
-                scores = detection[5:]
-                class_id = np.argmax(scores)
-                confidence = scores[class_id]
-                if confidence > 0.5:
-                    center_x = int(detection[0] * width)
-                    center_y = int(detection[1] * height)
-                    if center_x < width / 3:
-                        move_robot("esquerda")
-                    elif center_x > 2 * width / 3:
-                        move_robot("direita")
-                    else:
-                        move_robot("frente")
+    with tf.compat.v1.Session(graph=graph) as sess:
+        tensors = {
+            'image_tensor': graph.get_tensor_by_name('image_tensor:0'),
+            'detection_boxes': graph.get_tensor_by_name('detection_boxes:0'),
+            'detection_scores': graph.get_tensor_by_name('detection_scores:0'),
+            'detection_classes': graph.get_tensor_by_name('detection_classes:0')
+        }
 
-        cv2.imshow("Camera", frame)
-        if cv2.waitKey(1) == 27:
-            break
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                print("Erro ao capturar frame")
+                break
+
+            frame = cv2.flip(frame, 1)
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame_rgb = cv2.GaussianBlur(frame_rgb, (5, 5), 0)
+
+            detections = detect_objects(frame_rgb, sess, tensors)
+            draw_boxes(frame, detections['detection_boxes'][0], detections['detection_scores'][0], detections['detection_classes'][0])
+
+            cv2.imshow('Webcam - Detecção de Objetos', frame)
+
+            if cv2.waitKey(1) & 0xFF == 27:
+                break
+
+            if cv2.getWindowProperty('Webcam - Detecção de Objetos', cv2.WND_PROP_VISIBLE) < 1:
+                break
 
     cap.release()
     cv2.destroyAllWindows()
     parar_robot()
 
-from queue import PriorityQueue
-
-# Parâmetros do ambiente
-grid_size = (50, 50)  # Exemplo de grid 50x50
-obstacles = {(10, 10), (15, 15)}  # Exemplo de obstáculos
-
-def heuristica(a, b):
-    # Distância Manhattan
-    return abs(a[0] - b[0]) + abs(a[1] - b[1])
-
-def a_star(start, goal):
-    fila_prioridade = PriorityQueue()
-    fila_prioridade.put((0, start))
-    came_from = {start: None}
-    cost_so_far = {start: 0}
-
-    while not fila_prioridade.empty():
-        _, current = fila_prioridade.get()
-
-        if current == goal:
-            break
-
-        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-            neighbor = (current[0] + dx, current[1] + dy)
-            if 0 <= neighbor[0] < grid_size[0] and 0 <= neighbor[1] < grid_size[1]:
-                if neighbor in obstacles:
-                    continue
-                new_cost = cost_so_far[current] + 1
-                if neighbor not in cost_so_far or new_cost < cost_so_far[neighbor]:
-                    cost_so_far[neighbor] = new_cost
-                    priority = new_cost + heuristica(goal, neighbor)
-                    fila_prioridade.put((priority, neighbor))
-                    came_from[neighbor] = current
-
-    # Reconstruir o caminho
-    path = []
-    current = goal
-    while current != start:
-        path.append(current)
-        current = came_from.get(current)
-    path.reverse()
-    return path
-
-
-def calcular_rota(destino):
-    start = (0, 0)  # Posição inicial do robô
-    path = a_star(start, destino)
-    
-    for step in path:
-        if step[0] > start[0]:
-            move_robot("direita")
-        elif step[0] < start[0]:
-            move_robot("esquerda")
-        elif step[1] > start[1]:
-            move_robot("frente")
-        elif step[1] < start[1]:
-            move_robot("tras")
-        start = step
-        time.sleep(0.5)
-    
+def parar_robot():
+    print("Simulação: Parando o robô.")
     move_robot("parar")
-
+    status_robot["status"] = "parado"
+    status_robot["product"] = None
 
 if __name__ == "__main__":
     try:
         while True:
-            dist = medir_distancia()
-            print(f"Distância: {dist} cm")
+            medir_distancia()
             time.sleep(1)
     except KeyboardInterrupt:
-        GPIO.cleanup()
+        print("Simulação encerrada.")
